@@ -4,7 +4,9 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.database import get_db
+from backend.dependencies import get_current_user
 from backend.exceptions import NotFoundError
+from backend.models.user import User
 from backend.schemas.submission import GradeRecordPublic, SubmissionCreate, SubmissionPublic
 from backend.services.submission_service import SubmissionService
 
@@ -13,12 +15,12 @@ router = APIRouter(prefix="/submissions", tags=["submissions"])
 
 @router.post("/", response_model=SubmissionPublic, status_code=status.HTTP_201_CREATED)
 async def create_submission(
-    student_id: str,
     payload: SubmissionCreate,
     db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ) -> SubmissionPublic:
-    """Submit work for an assignment."""
-    submission = await SubmissionService(db).create_submission(payload, student_id=student_id)
+    """Submit work for an assignment. student_id is derived from the auth token."""
+    submission = await SubmissionService(db).create_submission(payload, student_id=current_user.id)
     return SubmissionPublic.model_validate(submission)
 
 

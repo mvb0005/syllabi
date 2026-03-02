@@ -1,0 +1,42 @@
+---
+repos:
+  # ---------------------------------------------------------------------------
+  # Python — Ruff (lint + format) + mypy
+  # ---------------------------------------------------------------------------
+  - repo: local
+    hooks:
+      - id: ruff-check
+        name: ruff lint
+        language: system
+        entry: ruff check --fix
+        types: [python]
+        pass_filenames: false
+        args: [backend/]
+
+      - id: ruff-format
+        name: ruff format
+        language: system
+        entry: ruff format
+        types: [python]
+        pass_filenames: false
+        args: [backend/]
+
+      - id: mypy
+        name: mypy --strict
+        language: system
+        entry: mypy --strict
+        types: [python]
+        pass_filenames: false
+        args: [backend/]
+
+  # ---------------------------------------------------------------------------
+  # Frontend — ESLint
+  # ---------------------------------------------------------------------------
+  - repo: local
+    hooks:
+      - id: eslint
+        name: eslint (frontend)
+        language: system
+        entry: bash -c 'if [ -f /workspace/frontend/eslint.config.js ]; then cd /workspace/frontend && npx eslint . --max-warnings=0; fi'
+        pass_filenames: false
+        always_run: true

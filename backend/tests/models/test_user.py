@@ -1,9 +1,7 @@
 """Tests for the User ORM model."""
 
-from sqlite3 import IntegrityError
-
 import pytest
-from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.models.user import User, UserRole

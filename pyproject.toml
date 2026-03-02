@@ -77,3 +77,10 @@ markers = [
     "integration: marks tests that require a live database (deselect with -m 'not integration')",
     "slow: marks tests that are slow",
 ]
+
+# ---------------------------------------------------------------------------
+# pre-commit — all linters run as git hooks
+# ---------------------------------------------------------------------------
+[tool.pre-commit]
+# Hook definitions live in .pre-commit-config.yaml.
+# Install with: pre-commit install

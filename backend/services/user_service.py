@@ -2,6 +2,7 @@
 
 from passlib.context import CryptContext
 from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.exceptions import ConflictError, NotFoundError
@@ -41,7 +42,11 @@ class UserService:
             role=payload.role,
         )
         self._db.add(user)
-        await self._db.commit()
+        try:
+            await self._db.commit()
+        except IntegrityError as exc:
+            await self._db.rollback()
+            raise ConflictError(f"User with email '{payload.email}' already exists") from exc
         await self._db.refresh(user)
         return user
 

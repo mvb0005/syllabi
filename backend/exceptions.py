@@ -24,7 +24,7 @@ class ConflictError(LMSError):
         self.detail = detail
 
 
-class PermissionError(LMSError):
+class PermissionDeniedError(LMSError):
     """Raised when the current user lacks permission for the requested action."""
 
     def __init__(self, detail: str = "Permission denied") -> None:
