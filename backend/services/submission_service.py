@@ -49,9 +49,11 @@ class SubmissionService:
     async def get_grade(self, submission_id: str) -> GradeRecord:
         """Retrieve the grade record for a submission.
 
-        Returns only fields safe for student consumption. The caller is
-        responsible for using ``GradeRecordPublic`` schema (which omits
-        ``private_reasoning``) when serialising for the API response.
+        Returns the full ``GradeRecord`` ORM object, including
+        ``private_reasoning``. Callers MUST serialise through
+        ``GradeRecordPublic`` (which omits ``private_reasoning``) before
+        returning data to the client — never expose the raw ORM object
+        directly in an API response.
 
         Raises:
             NotFoundError: If no grade record exists for the submission.

@@ -47,10 +47,10 @@
 	// 3000 = React/Vite, 8000 = FastAPI, 5432 = Postgres Database
 	"forwardPorts": [3000, 8000, 5432],
 
-	// Pre-install all our strict python dev tools instantly.
-	"postCreateCommand": "pip install ruff mypy pytest httpx uvicorn fastapi pre-commit && pre-commit install && npm install -g typescript",
+	// Installs all runtime + dev deps from pyproject.toml, then wires up pre-commit hooks.
+	"postCreateCommand": "pip install -e '.[dev]' && pre-commit install && npm install -g typescript",
 
 	// Fix docker socket permissions on every container start so `docker exec` works
 	// for the MCP servers defined in .vscode/mcp.json.
-	"postStartCommand": "sudo chmod 666 /var/run/docker.sock || true && source /usr/local/share/nvm/nvm.sh && npm install -g @playwright/cli@latest --silent 2>/dev/null || true"
+	"postStartCommand": "sudo chmod 666 /var/run/docker.sock || true && source /usr/local/share/nvm/nvm.sh && npm install -g @playwright/cli@0.1.1 --silent"
 }
