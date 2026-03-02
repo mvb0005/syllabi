@@ -3,6 +3,7 @@
 from backend.models.assignment import Assignment, GradingType, TestCase
 from backend.models.base import Base, TimestampMixin
 from backend.models.course import Course, Module
+from backend.models.enrollment import Enrollment
 from backend.models.submission import GradedBy, GradeRecord, Submission, SubmissionStatus
 from backend.models.user import User, UserRole
 
@@ -10,6 +11,7 @@ __all__ = [
     "Assignment",
     "Base",
     "Course",
+    "Enrollment",
     "GradeRecord",
     "GradedBy",
     "GradingType",
