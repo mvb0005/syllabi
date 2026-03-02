@@ -7,7 +7,7 @@ on:
 jobs:
   ai-review:
     name: AI PR Review (CodeRabbit)
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
     # Only run after CI passes — no point reviewing broken code
     needs: []
     if: >
