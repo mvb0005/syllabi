@@ -34,15 +34,15 @@ select = [
     "RUF", # ruff-specific rules
 ]
 ignore = [
-    "ANN101", # missing type annotation for `self`
-    "ANN102", # missing type annotation for `cls`
     "S101",   # allow assert in tests
     "PLR2004", # allow magic numbers in tests
     "T201",   # allow print in scripts
 ]
 
 [tool.ruff.lint.per-file-ignores]
-"**/tests/**" = ["S", "ANN", "PLR2004", "T20"]
+"**/tests/**" = ["S", "ANN", "PLR2004", "T20", "PLC0415"]
+"**/routers/**" = ["B008"]
+"backend/dependencies.py" = ["B008"]
 
 [tool.ruff.lint.isort]
 known-first-party = ["backend"]
