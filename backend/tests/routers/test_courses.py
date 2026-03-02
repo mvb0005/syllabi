@@ -26,8 +26,11 @@ async def test_create_course(client: AsyncClient) -> None:
     instructor_id = await _make_instructor(client)
     response = await client.post(
         "/courses/",
-        params={"instructor_id": instructor_id},
-        json={"title": "Intro to Python", "description": "Learn Python basics"},
+        json={
+            "title": "Intro to Python",
+            "description": "Learn Python basics",
+            "instructor_id": instructor_id,
+        },
     )
     assert response.status_code == 201
     data = response.json()
@@ -49,8 +52,7 @@ async def test_update_course(client: AsyncClient) -> None:
     instructor_id = await _make_instructor(client)
     create_resp = await client.post(
         "/courses/",
-        params={"instructor_id": instructor_id},
-        json={"title": "Old Title"},
+        json={"title": "Old Title", "instructor_id": instructor_id},
     )
     course_id = create_resp.json()["id"]
     response = await client.patch(

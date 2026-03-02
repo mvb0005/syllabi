@@ -5,6 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from backend.exceptions import NotFoundError
 from backend.models.assignment import Assignment
 from backend.models.course import Course, Module
+from backend.models.user import User
 from backend.schemas.assignment import AssignmentCreate, AssignmentUpdate
 from backend.schemas.course import CourseCreate, CourseUpdate, ModuleCreate
 
@@ -25,7 +26,12 @@ class CourseService:
 
         Returns:
             The newly created Course ORM instance.
+
+        Raises:
+            NotFoundError: If no user with ``instructor_id`` exists.
         """
+        if await self._db.get(User, instructor_id) is None:
+            raise NotFoundError("User", instructor_id)
         course = Course(
             title=payload.title,
             description=payload.description,

@@ -107,6 +107,11 @@ addopts = [
     "-q",
     "--strict-markers",
 ]
+filterwarnings = [
+    # passlib uses the deprecated `crypt` stdlib module on Python 3.12.
+    # The warning is in third-party library code; nothing we can fix upstream.
+    "ignore::DeprecationWarning:passlib",
+]
 markers = [
     "integration: marks tests that require a live database (deselect with -m 'not integration')",
     "slow: marks tests that are slow",

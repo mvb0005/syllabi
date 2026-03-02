@@ -7,7 +7,6 @@ from httpx import ASGITransport, AsyncClient
 from sqlalchemy.ext.asyncio import (
     AsyncEngine,
     AsyncSession,
-    async_sessionmaker,
     create_async_engine,
 )
 
@@ -30,13 +29,23 @@ async def engine() -> AsyncGenerator[AsyncEngine, None]:
 
 @pytest_asyncio.fixture
 async def db_session(engine: AsyncEngine) -> AsyncGenerator[AsyncSession, None]:
-    """Provide a transactional test session that rolls back after each test."""
-    session_factory: async_sessionmaker[AsyncSession] = async_sessionmaker(
-        bind=engine, expire_on_commit=False, autoflush=False
-    )
-    async with session_factory() as session:
+    """Provide an isolated test session that rolls back after each test.
+
+    Uses ``join_transaction_mode="create_savepoint"`` so that service-layer
+    ``session.commit()`` calls flush to a SAVEPOINT rather than a real
+    transaction commit, keeping every test fully isolated.
+    """
+    async with engine.connect() as conn:
+        await conn.begin()
+        session = AsyncSession(
+            bind=conn,
+            expire_on_commit=False,
+            autoflush=False,
+            join_transaction_mode="create_savepoint",
+        )
         yield session
-        await session.rollback()
+        await session.close()
+        await conn.rollback()
 
 
 @pytest_asyncio.fixture

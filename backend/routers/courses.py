@@ -20,11 +20,18 @@ router = APIRouter(prefix="/courses", tags=["courses"])
 @router.post("/", response_model=CoursePublic, status_code=status.HTTP_201_CREATED)
 async def create_course(
     payload: CourseCreate,
-    instructor_id: str,
     db: AsyncSession = Depends(get_db),
 ) -> CoursePublic:
-    """Create a new course."""
-    course = await CourseService(db).create_course(payload, instructor_id=instructor_id)
+    """Create a new course.
+
+    ``instructor_id`` is taken from the request body until Phase 3 replaces it
+    with ``get_current_user``.
+    """
+    # TODO(phase3): replace payload.instructor_id with current_user.id
+    try:
+        course = await CourseService(db).create_course(payload, instructor_id=payload.instructor_id)
+    except NotFoundError as exc:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
     return CoursePublic.model_validate(course)
 
 

@@ -4,6 +4,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.exceptions import NotFoundError
+from backend.models.assignment import Assignment
 from backend.models.submission import GradeRecord, Submission
 from backend.schemas.submission import SubmissionCreate
 
@@ -24,7 +25,12 @@ class SubmissionService:
 
         Returns:
             The newly created Submission ORM instance.
+
+        Raises:
+            NotFoundError: If the referenced assignment does not exist.
         """
+        if await self._db.get(Assignment, payload.assignment_id) is None:
+            raise NotFoundError("Assignment", payload.assignment_id)
         submission = Submission(
             assignment_id=payload.assignment_id,
             student_id=student_id,
