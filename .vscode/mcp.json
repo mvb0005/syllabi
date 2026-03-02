@@ -1,0 +1,41 @@
+{
+  // MCP servers for GitHub Copilot in VS Code.
+  // All servers connect via Docker exec into the running lms-mothership containers.
+  // Prerequisite: run `docker compose -f .devcontainer/docker-compose.yml up -d` first.
+  // Set GITHUB_PAT as a Windows environment variable for the GitHub MCP server.
+  "servers": {
+    "lms-memory": {
+      "type": "stdio",
+      "command": "docker",
+      "args": ["exec", "-i", "lms-mcp-memory", "npx", "-y", "@modelcontextprotocol/server-memory"],
+      "description": "Persistent knowledge graph for project architecture decisions and conventions"
+    },
+    "lms-postgres": {
+      "type": "stdio",
+      "command": "docker",
+      "args": ["exec", "-i", "lms-mcp-postgres", "npx", "-y", "mcp-postgres-server", "postgresql://lms_user:lms_password@lms-db:5432/lms_db"],
+      "description": "Live LMS PostgreSQL database — inspect schemas and validate data"
+    },
+    "lms-filesystem": {
+      "type": "stdio",
+      "command": "docker",
+      "args": ["exec", "-i", "lms-mcp-filesystem", "npx", "-y", "@modelcontextprotocol/server-filesystem", "/workspace"],
+      "description": "Read-only access to the full workspace codebase at /workspace"
+    },
+    "lms-github": {
+      "type": "stdio",
+      "command": "docker",
+      "args": ["exec", "-i", "lms-mcp-github", "npx", "-y", "@github/github-mcp-server"],
+      "env": {
+        "GITHUB_PERSONAL_ACCESS_TOKEN": "${env:GITHUB_PAT}"
+      },
+      "description": "GitHub API — manage PRs, branches, and issues directly from Copilot"
+    },
+    "lms-docker": {
+      "type": "stdio",
+      "command": "docker",
+      "args": ["exec", "-i", "lms-mcp-docker", "/docker-mcp"],
+      "description": "Docker engine — manage containers, images, volumes and networks from Copilot"
+    }
+  }
+}

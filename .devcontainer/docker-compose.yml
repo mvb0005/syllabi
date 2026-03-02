@@ -1,0 +1,107 @@
+name: lms-mothership-v3
+
+# A fixed-name network so VS Code MCP clients can always reach
+# running services regardless of mothership version number.
+networks:
+  lms-network:
+    name: lms-network
+
+services:
+  # --------------------------------------------------
+  # 1. Dev Workstation
+  # --------------------------------------------------
+  app:
+    image: mcr.microsoft.com/devcontainers/python:1-3.12-bullseye
+    volumes:
+      - ../:/workspace:cached
+      - /var/run/docker.sock:/var/run/docker.sock
+    command: /bin/sh -c "while sleep 1000; do :; done"
+    networks:
+      - lms-network
+
+  # --------------------------------------------------
+  # 2. Database
+  # --------------------------------------------------
+  db:
+    image: postgres:15-alpine
+    restart: always
+    container_name: lms-db
+    environment:
+      POSTGRES_USER: lms_user
+      POSTGRES_PASSWORD: lms_password
+      POSTGRES_DB: lms_db
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - lms-network
+
+  # --------------------------------------------------
+  # 3. MCP Servers (stable container_name so mcp.json never needs updating)
+  # --------------------------------------------------
+  mcp-postgres:
+    image: node:22-alpine
+    container_name: lms-mcp-postgres
+    command: ["npx", "-y", "mcp-postgres-server", "postgresql://lms_user:lms_password@db:5432/lms_db"]
+    depends_on:
+      db:
+        condition: service_started
+    volumes:
+      - ../:/workspace:ro
+    stdin_open: true
+    tty: true
+    networks:
+      - lms-network
+
+  mcp-memory:
+    image: node:22-alpine
+    container_name: lms-mcp-memory
+    command: ["npx", "-y", "@modelcontextprotocol/server-memory"]
+    volumes:
+      - ../:/workspace:ro
+      - mcp-memory-data:/app/dist
+    stdin_open: true
+    tty: true
+    networks:
+      - lms-network
+
+  mcp-filesystem:
+    image: node:22-alpine
+    container_name: lms-mcp-filesystem
+    command: ["npx", "-y", "@modelcontextprotocol/server-filesystem", "/workspace"]
+    volumes:
+      - ../:/workspace:rw
+    stdin_open: true
+    tty: true
+    networks:
+      - lms-network
+
+  mcp-github:
+    image: ghcr.io/github/github-mcp-server:latest
+    container_name: lms-mcp-github
+    env_file:
+      - ../.env
+    environment:
+      - GITHUB_PERSONAL_ACCESS_TOKEN=${GITHUB_PAT}
+    volumes:
+      - ../:/workspace:ro
+    stdin_open: true
+    tty: true
+    networks:
+      - lms-network
+
+  mcp-docker:
+    image: mcp/docker:latest
+    container_name: lms-mcp-docker
+    # Mounts the host Docker socket so the MCP server can manage containers
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    stdin_open: true
+    tty: true
+    networks:
+      - lms-network
+
+volumes:
+  mcp-memory-data:
+  postgres-data:
