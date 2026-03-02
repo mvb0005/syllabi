@@ -40,3 +40,21 @@ class GradingError(LMSError):
         """Initialise with a description of the grading failure."""
         super().__init__(detail)
         self.detail = detail
+
+
+class AuthenticationError(LMSError):
+    """Raised when credentials are invalid or a token cannot be decoded."""
+
+    def __init__(self, detail: str = "Invalid credentials") -> None:
+        """Initialise with an optional detail string."""
+        super().__init__(detail)
+        self.detail = detail
+
+
+class AuthorizationError(LMSError):
+    """Raised when a user lacks the required role for an action."""
+
+    def __init__(self, detail: str = "Insufficient permissions") -> None:
+        """Initialise with an optional detail string."""
+        super().__init__(detail)
+        self.detail = detail

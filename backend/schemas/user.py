@@ -5,6 +5,21 @@ from pydantic import BaseModel, ConfigDict, EmailStr
 from backend.models.user import UserRole
 
 
+class LoginRequest(BaseModel):
+    """Request body for the login endpoint."""
+
+    email: EmailStr
+    password: str
+
+
+class TokenPayload(BaseModel):
+    """Decoded JWT payload structure."""
+
+    sub: str  # user id
+    role: str
+    exp: int
+
+
 class UserBase(BaseModel):
     """Fields shared by create and read schemas."""
 

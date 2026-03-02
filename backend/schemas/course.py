@@ -13,12 +13,10 @@ class CourseBase(BaseModel):
 class CourseCreate(CourseBase):
     """Request body for creating a course.
 
-    ``instructor_id`` is supplied by the client until Phase 3 introduces JWT auth,
-    at which point it will be derived from the auth token and removed from this schema.
+    ``instructor_id`` is derived from the authenticated user's JWT token
+    via the ``instructor_required`` dependency; it is not accepted from
+    the request body.
     """
-
-    # TODO(phase3): remove — will be derived from get_current_user dependency
-    instructor_id: str
 
 
 class CourseUpdate(BaseModel):

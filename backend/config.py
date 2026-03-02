@@ -9,6 +9,8 @@ class Settings(BaseSettings):
 
     DATABASE_URL: str = "postgresql+asyncpg://lms_user:lms_password@db:5432/lms_db"
     SECRET_KEY: str = "change-me-in-production"  # noqa: S105
+    JWT_ALGORITHM: str = "HS256"
+    JWT_EXPIRE_MINUTES: int = 60 * 24  # 24 hours
     OPENAI_API_KEY: str = ""
     GROQ_API_KEY: str = ""
     ENVIRONMENT: str = "development"

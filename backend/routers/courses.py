@@ -4,7 +4,9 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.database import get_db
+from backend.dependencies import instructor_required
 from backend.exceptions import NotFoundError
+from backend.models.user import User
 from backend.schemas.course import (
     CourseCreate,
     CoursePublic,
@@ -21,15 +23,22 @@ router = APIRouter(prefix="/courses", tags=["courses"])
 async def create_course(
     payload: CourseCreate,
     db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(instructor_required),
 ) -> CoursePublic:
     """Create a new course.
 
-    ``instructor_id`` is taken from the request body until Phase 3 replaces it
-    with ``get_current_user``.
+    The instructor_id is derived from the authenticated user's JWT token.
+
+    Args:
+        payload: Course creation data (title and description).
+        db: Async database session.
+        current_user: The authenticated instructor (injected by dependency).
+
+    Returns:
+        The newly created course.
     """
-    # TODO(phase3): replace payload.instructor_id with current_user.id
     try:
-        course = await CourseService(db).create_course(payload, instructor_id=payload.instructor_id)
+        course = await CourseService(db).create_course(payload, instructor_id=current_user.id)
     except NotFoundError as exc:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
     return CoursePublic.model_validate(course)
