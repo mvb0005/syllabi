@@ -1,1 +1,1 @@
-- [ ] Set up git remote origin
+TODO: set remote origin
