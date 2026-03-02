@@ -5,15 +5,16 @@ import os
 from logging.config import fileConfig
 
 from alembic import context
+from sqlalchemy.engine import Connection
 from sqlalchemy.ext.asyncio import create_async_engine
 
-from backend.models.base import Base
+import backend.models.assignment
+import backend.models.course
+import backend.models.submission
 
 # import all models so their tables are registered on Base.metadata
 import backend.models.user  # noqa: F401
-import backend.models.course  # noqa: F401
-import backend.models.assignment  # noqa: F401
-import backend.models.submission  # noqa: F401
+from backend.models.base import Base
 
 config = context.config
 
@@ -41,9 +42,9 @@ def run_migrations_offline() -> None:
         context.run_migrations()
 
 
-def do_run_migrations(connection: object) -> None:
+def do_run_migrations(connection: Connection) -> None:
     """Execute migrations synchronously within a running connection."""
-    context.configure(connection=connection, target_metadata=target_metadata)  # type: ignore[arg-type]
+    context.configure(connection=connection, target_metadata=target_metadata)
     with context.begin_transaction():
         context.run_migrations()
 
