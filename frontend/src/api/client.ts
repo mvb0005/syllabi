@@ -1,6 +1,11 @@
 /**
  * Typed API client for the LMS backend.
  * All requests go through /api proxy defined in vite.config.ts.
+ *
+ * TODO: Replace handwritten endpoint helpers with auto-generated typed client
+ * once `openapi-typescript` / `openapi-fetch` codegen is wired up from the
+ * FastAPI OpenAPI spec.  Keep only the base `request()` helper and shared
+ * auth/config here.
  */
 
 const BASE_URL = '/api'
