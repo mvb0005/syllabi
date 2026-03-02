@@ -48,5 +48,9 @@
 	"forwardPorts": [3000, 8000, 5432],
 
 	// Pre-install all our strict python dev tools instantly.
-	"postCreateCommand": "pip install ruff mypy pytest httpx uvicorn fastapi && npm install -g typescript"
+	"postCreateCommand": "pip install ruff mypy pytest httpx uvicorn fastapi && npm install -g typescript",
+
+	// Fix docker socket permissions on every container start so `docker exec` works
+	// for the MCP servers defined in .vscode/mcp.json.
+	"postStartCommand": "sudo chmod 666 /var/run/docker.sock || true"
 }
