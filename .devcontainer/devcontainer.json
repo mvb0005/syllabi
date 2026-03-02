@@ -52,5 +52,5 @@
 
 	// Fix docker socket permissions on every container start so `docker exec` works
 	// for the MCP servers defined in .vscode/mcp.json.
-	"postStartCommand": "sudo chmod 666 /var/run/docker.sock || true"
+	"postStartCommand": "sudo chmod 666 /var/run/docker.sock || true && source /usr/local/share/nvm/nvm.sh && npm install -g @playwright/cli@latest --silent 2>/dev/null || true"
 }
