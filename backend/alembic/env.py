@@ -8,12 +8,9 @@ from alembic import context
 from sqlalchemy.engine import Connection
 from sqlalchemy.ext.asyncio import create_async_engine
 
-import backend.models.assignment
-import backend.models.course
-import backend.models.submission
-
-# import all models so their tables are registered on Base.metadata
-import backend.models.user  # noqa: F401
+# Import the package — __init__.py re-exports all models so their tables
+# are registered on Base.metadata before autogenerate inspects them.
+import backend.models  # noqa: F401
 from backend.models.base import Base
 
 config = context.config
@@ -51,7 +48,7 @@ def do_run_migrations(connection: Connection) -> None:
 
 async def run_migrations_online() -> None:
     """Run migrations in 'online' mode using an async engine."""
-    connectable = create_async_engine(_db_url, future=True)
+    connectable = create_async_engine(_db_url)
     async with connectable.connect() as connection:
         await connection.run_sync(do_run_migrations)
     await connectable.dispose()
