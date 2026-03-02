@@ -9,7 +9,7 @@ on:
 jobs:
   backend:
     name: Backend – Lint, Type Check & Test
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
     if: >
       github.event.pull_request.user.login == 'mvb0005' ||
       github.event.pull_request.head.repo.full_name == 'mvb0005/syllabi'
@@ -45,7 +45,7 @@ jobs:
 
   frontend:
     name: Frontend – Type Check & Lint
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
     if: >
       github.event.pull_request.user.login == 'mvb0005' ||
       github.event.pull_request.head.repo.full_name == 'mvb0005/syllabi'
