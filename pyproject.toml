@@ -3,11 +3,9 @@ requires = ["setuptools>=68", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools]
-# Explicitly map the 'backend' package to the 'backend/' directory.
-# This ensures that setuptools knows exactly where the source code lives
-# and prevents it from incorrectly including the root or 'frontend/'.
-package-dir = {"backend" = "backend"}
-packages = ["backend"]
+# Explicitly use find directive to include only 'backend'
+# This is the most reliable way to prevent accidental discovery of 'frontend'
+packages.find = {where = ["."], include = ["backend*"], exclude = ["frontend*", "tests*"]}
 
 # ---------------------------------------------------------------------------
 # Project metadata + pinned dependencies
