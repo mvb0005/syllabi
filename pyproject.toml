@@ -1,6 +1,11 @@
 [build-system]
-requires = ["setuptools>=68"]
-build-backend = "setuptools.backends.legacy:build"
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+# Explicitly use find directive to include only 'backend'
+# This is the most reliable way to prevent accidental discovery of 'frontend'
+packages.find = {where = ["."], include = ["backend*"], exclude = ["frontend*", "tests*"]}
 
 # ---------------------------------------------------------------------------
 # Project metadata + pinned dependencies
@@ -14,7 +19,7 @@ dependencies = [
     "uvicorn[standard]>=0.30",
     "sqlalchemy[asyncio]>=2.0",
     "asyncpg>=0.29",
-    "pydantic>=2.0",
+    "pydantic[email]>=2.0",
     "pydantic-settings>=2.0",
     "passlib[bcrypt]>=1.7.4",
     "bcrypt==4.0.1",   # passlib incompatible with bcrypt>=5
@@ -31,6 +36,8 @@ dev = [
     "ruff>=0.4",
     "mypy>=1.10",
     "pre-commit>=3.7",
+    "types-python-jose",
+    "types-passlib",
 ]
 
 # ---------------------------------------------------------------------------

@@ -14,13 +14,14 @@ async function request<T>(
   path: string,
   options: RequestInit = {},
 ): Promise<T> {
+  const { headers: optionHeaders, ...restOptions } = options
   const res = await fetch(`${BASE_URL}${path}`, {
+    ...restOptions,
     credentials: 'include',
     headers: {
       'Content-Type': 'application/json',
-      ...options.headers,
+      ...(optionHeaders ?? {}),
     },
-    ...options,
   })
 
   if (!res.ok) {

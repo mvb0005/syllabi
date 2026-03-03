@@ -4,9 +4,9 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.database import get_db
-from backend.dependencies import instructor_required
-from backend.exceptions import NotFoundError
-from backend.models.user import User
+from backend.dependencies import get_current_user, instructor_required
+from backend.exceptions import ConflictError, NotFoundError
+from backend.models.user import User, UserRole
 from backend.schemas.course import (
     CourseCreate,
     CoursePublic,
@@ -14,7 +14,9 @@ from backend.schemas.course import (
     ModuleCreate,
     ModulePublic,
 )
+from backend.schemas.enrollment import EnrollmentCreate, EnrollmentPublic
 from backend.services.course_service import CourseService
+from backend.services.enrollment_service import EnrollmentService
 
 router = APIRouter(prefix="/courses", tags=["courses"])
 
@@ -87,3 +89,47 @@ async def create_module(
     except NotFoundError as exc:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
     return ModulePublic.model_validate(module)
+
+
+@router.post(
+    "/{course_id}/enroll",
+    response_model=EnrollmentPublic,
+    status_code=status.HTTP_201_CREATED,
+)
+async def enroll_student(
+    course_id: str,
+    payload: EnrollmentCreate,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> EnrollmentPublic:
+    """Enroll a student in a course.
+
+    Students self-enroll (``student_id`` is taken from the JWT token).
+    Instructors may supply a ``student_id`` to enroll another student.
+
+    Args:
+        course_id: The course to enroll in.
+        payload: Optional ``student_id`` override (instructors only).
+        db: Async database session.
+        current_user: The authenticated user making the request.
+
+    Returns:
+        The created enrollment record.
+    """
+    if current_user.role == UserRole.instructor:
+        if payload.student_id is None:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Instructors must provide a student_id to enroll.",
+            )
+        target_student_id = payload.student_id
+    else:
+        target_student_id = current_user.id
+
+    try:
+        enrollment = await EnrollmentService(db).enroll_student(course_id, target_student_id)
+    except NotFoundError as exc:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
+    except ConflictError as exc:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=exc.detail) from exc
+    return EnrollmentPublic.model_validate(enrollment)
