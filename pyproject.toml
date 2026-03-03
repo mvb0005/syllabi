@@ -3,8 +3,10 @@ requires = ["setuptools>=68", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools]
-# Explicitly define which packages to include to avoid discovery errors
-# when multiple top-level directories (backend, frontend) exist.
+# Explicitly map the 'backend' package to the 'backend/' directory.
+# This ensures that setuptools knows exactly where the source code lives
+# and prevents it from incorrectly including the root or 'frontend/'.
+package-dir = {"backend" = "backend"}
 packages = ["backend"]
 
 # ---------------------------------------------------------------------------
