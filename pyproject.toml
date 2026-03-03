@@ -2,6 +2,11 @@
 requires = ["setuptools>=68", "wheel"]
 build-backend = "setuptools.build_meta"
 
+[tool.setuptools]
+# Explicitly define which packages to include to avoid discovery errors
+# when multiple top-level directories (backend, frontend) exist.
+packages = ["backend"]
+
 # ---------------------------------------------------------------------------
 # Project metadata + pinned dependencies
 # ---------------------------------------------------------------------------
