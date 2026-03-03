@@ -116,10 +116,16 @@ async def enroll_student(
     Returns:
         The created enrollment record.
     """
-    if current_user.role == UserRole.instructor and payload.student_id is not None:
+    if current_user.role == UserRole.instructor:
+        if payload.student_id is None:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Instructors must provide a student_id to enroll.",
+            )
         target_student_id = payload.student_id
     else:
         target_student_id = current_user.id
+
     try:
         enrollment = await EnrollmentService(db).enroll_student(course_id, target_student_id)
     except NotFoundError as exc:

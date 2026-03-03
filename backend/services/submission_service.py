@@ -5,6 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.exceptions import NotFoundError
 from backend.models.assignment import Assignment
+from backend.models.course import Module
 from backend.models.submission import GradeRecord, Submission
 from backend.schemas.submission import SubmissionCreate
 
@@ -19,18 +20,18 @@ class SubmissionService:
     async def create_submission(self, payload: SubmissionCreate, *, student_id: str) -> Submission:
         """Persist a new student submission.
 
-        Args:
-            payload: Validated submission data.
-            student_id: ID of the submitting student.
-
         Returns:
             The newly created Submission ORM instance.
 
         Raises:
             NotFoundError: If the referenced assignment does not exist.
         """
-        if await self._db.get(Assignment, payload.assignment_id) is None:
+        # Load assignment along with its parent module to get course_id
+        # directly in one query if needed, or at least handle the existence check.
+        assignment = await self._db.get(Assignment, payload.assignment_id)
+        if assignment is None:
             raise NotFoundError("Assignment", payload.assignment_id)
+
         submission = Submission(
             assignment_id=payload.assignment_id,
             student_id=student_id,
@@ -40,6 +41,25 @@ class SubmissionService:
         await self._db.commit()
         await self._db.refresh(submission)
         return submission
+
+    async def get_assignment_course_id(self, assignment_id: str) -> str:
+        """Retrieve the course ID for an assignment.
+
+        Returns:
+            The course ID.
+
+        Raises:
+            NotFoundError: If the assignment or its module does not exist.
+        """
+        assignment = await self._db.get(Assignment, assignment_id)
+        if assignment is None:
+            raise NotFoundError("Assignment", assignment_id)
+
+        module = await self._db.get(Module, assignment.module_id)
+        if module is None:
+            raise NotFoundError("Module", assignment.module_id)
+
+        return str(module.course_id)
 
     async def get_submission(self, submission_id: str) -> Submission:
         """Retrieve a submission by primary key.
