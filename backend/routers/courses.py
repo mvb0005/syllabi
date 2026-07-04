@@ -16,8 +16,10 @@ from backend.schemas.course import (
     ModulePublic,
 )
 from backend.schemas.enrollment import EnrollmentCreate, EnrollmentPublic
+from backend.schemas.source import SourceExcerptPublic
 from backend.services.course_service import CourseService
 from backend.services.enrollment_service import EnrollmentService
+from backend.services.source_service import SourceService
 
 router = APIRouter(prefix="/courses", tags=["courses"])
 
@@ -67,6 +69,20 @@ async def list_modules(
     except NotFoundError as exc:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
     return [ModulePublic.model_validate(module) for module in modules]
+
+
+@router.get("/{course_id}/excerpts", response_model=list[SourceExcerptPublic])
+async def list_course_excerpts(
+    course_id: str,
+    db: AsyncSession = Depends(get_db),
+) -> list[SourceExcerptPublic]:
+    """List all cited source excerpts across a course's modules, in module order."""
+    try:
+        await CourseService(db).get_course(course_id)
+    except NotFoundError as exc:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
+    excerpts = await SourceService(db).list_excerpts_for_course(course_id)
+    return [SourceExcerptPublic.model_validate(excerpt) for excerpt in excerpts]
 
 
 @router.get("/{course_id}/assignments", response_model=list[AssignmentPublic])

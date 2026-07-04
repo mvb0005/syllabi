@@ -24,6 +24,15 @@ class ConflictError(LMSError):
         self.detail = detail
 
 
+class ValidationError(LMSError):
+    """Raised when a request is well-formed but semantically invalid."""
+
+    def __init__(self, detail: str) -> None:
+        """Initialise with a human-readable validation failure description."""
+        super().__init__(detail)
+        self.detail = detail
+
+
 class PermissionDeniedError(LMSError):
     """Raised when the current user lacks permission for the requested action."""
 

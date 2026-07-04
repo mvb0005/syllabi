@@ -141,6 +141,42 @@ export function listCourseAssignments(
   return request<AssignmentPublic[]>(`/courses/${courseId}/assignments`)
 }
 
+// ---- Sources & excerpts ------------------------------------------------------
+
+export type SourceKind = 'pdf' | 'text'
+
+export interface SourcePublic {
+  id: string
+  bibkey: string
+  title: string
+  authors: string
+  edition: string
+  publisher: string
+  year: number | null
+  kind: SourceKind
+  path: string
+}
+
+export interface SourceExcerptPublic {
+  id: string
+  source_id: string
+  module_id: string
+  page_start: number
+  page_end: number
+  topic: string
+  context_md: string
+  order_index: number
+  content_text: string
+  source: SourcePublic
+}
+
+/** All cited source excerpts across a course's modules, in module order. */
+export function listCourseExcerpts(
+  courseId: string,
+): Promise<SourceExcerptPublic[]> {
+  return request<SourceExcerptPublic[]>(`/courses/${courseId}/excerpts`)
+}
+
 // ---- Submissions -----------------------------------------------------------
 
 export interface SubmissionPublic {
