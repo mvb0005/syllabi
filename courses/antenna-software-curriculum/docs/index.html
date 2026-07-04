@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>A Curriculum in Algorithms for Applied Antenna Software Systems</title>
+
+<!-- KaTeX: math rendering + Computer Modern fonts -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+
+<style>
+  :root {
+    --ink: #111111;
+    --paper: #ffffff;
+    --desk: #e9e8e4;
+    --rule: #111111;
+    --href: #1a4a9c;      /* classic hyperref blue */
+    --faint: #666666;
+    --listing-bg: #f6f6f4;
+  }
+
+  * { box-sizing: border-box; }
+
+  html { background: var(--desk); }
+
+  body {
+    margin: 0;
+    font-family: "KaTeX_Main", "Latin Modern Roman", "Computer Modern", Georgia, serif;
+    font-size: 1.05rem;
+    line-height: 1.42;
+    color: var(--ink);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ---- the sheet of paper ---- */
+  .sheet {
+    background: var(--paper);
+    max-width: 46rem;
+    margin: 2.5rem auto 4rem;
+    padding: 4rem 4.25rem 5rem;
+    box-shadow: 0 1px 2px rgba(0,0,0,.12), 0 8px 28px rgba(0,0,0,.10);
+    position: relative;
+  }
+
+  /* ---- rotated arXiv-style banner ---- */
+  .arxiv-banner {
+    position: fixed;
+    left: 0.4rem;
+    top: 50%;
+    transform: rotate(180deg) translateY(50%);
+    writing-mode: vertical-rl;
+    font-family: "KaTeX_Main", serif;
+    font-size: 0.85rem;
+    letter-spacing: 0.02em;
+    color: var(--faint);
+    user-select: none;
+  }
+  .arxiv-banner a { color: var(--faint); text-decoration: none; }
+
+  p { margin: 0 0 0.35rem; text-align: justify; hyphens: auto; }
+  p + p { text-indent: 1.4em; margin-top: 0; }
+
+  a { color: var(--href); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  a:focus-visible { outline: 2px solid var(--href); outline-offset: 2px; }
+
+  /* ---- title block ---- */
+  header { text-align: center; margin-bottom: 2.2rem; }
+  h1 {
+    font-size: 1.55rem;
+    font-weight: 700;
+    line-height: 1.25;
+    margin: 0 0 1.1rem;
+  }
+  .authors { font-size: 1.05rem; margin-bottom: 0.15rem; }
+  .affil { font-size: 0.92rem; font-style: italic; color: var(--ink); }
+  .date { font-size: 0.92rem; margin-top: 0.8rem; }
+
+  /* ---- abstract ---- */
+  .abstract { margin: 0 2.2rem 2rem; }
+  .abstract .label {
+    text-align: center;
+    font-weight: 700;
+    font-size: 0.95rem;
+    margin-bottom: 0.4rem;
+  }
+  .abstract p { font-size: 0.94rem; line-height: 1.4; }
+
+  /* ---- sectioning ---- */
+  h2 {
+    font-size: 1.18rem;
+    font-weight: 700;
+    margin: 2rem 0 0.6rem;
+  }
+  h3 {
+    font-size: 1.02rem;
+    font-weight: 700;
+    margin: 1.3rem 0 0.4rem;
+  }
+  h2 .no, h3 .no { margin-right: 0.9em; }
+
+  /* ---- theorem-style environments ---- */
+  .env { margin: 0.9rem 0; }
+  .env .head { font-weight: 700; }
+  .env .head em { font-weight: 400; }
+  .env-body { font-style: italic; }
+  .env-body .upright { font-style: normal; }
+
+  /* ---- figures ---- */
+  figure { margin: 1.6rem 0; text-align: center; }
+  figure svg { max-width: 100%; height: auto; }
+  figcaption {
+    font-size: 0.88rem;
+    text-align: justify;
+    margin: 0.55rem 1.4rem 0;
+    line-height: 1.35;
+  }
+  figcaption .figno { font-weight: 700; }
+
+  /* ---- booktabs table ---- */
+  table {
+    margin: 1rem auto;
+    border-collapse: collapse;
+    font-size: 0.92rem;
+  }
+  table caption {
+    caption-side: top;
+    font-size: 0.88rem;
+    margin-bottom: 0.5rem;
+  }
+  table caption .figno { font-weight: 700; }
+  th, td { padding: 0.28rem 0.9rem; text-align: left; }
+  thead th { border-top: 1.6px solid var(--rule); border-bottom: 0.8px solid var(--rule); font-weight: 400; font-style: italic; }
+  tbody tr:last-child td { border-bottom: 1.6px solid var(--rule); }
+  td code, li code, p code {
+    font-family: "Latin Modern Mono", ui-monospace, "Courier New", monospace;
+    font-size: 0.88em;
+  }
+
+  /* ---- code listings ---- */
+  .listing {
+    background: var(--listing-bg);
+    border-top: 1px solid var(--rule);
+    border-bottom: 1px solid var(--rule);
+    padding: 0.7rem 0.9rem;
+    margin: 1rem 0 0.3rem;
+    overflow-x: auto;
+  }
+  .listing pre {
+    margin: 0;
+    font-family: "Latin Modern Mono", ui-monospace, "Courier New", monospace;
+    font-size: 0.84rem;
+    line-height: 1.45;
+  }
+  .listing .cm { color: var(--faint); }
+  .listing-cap {
+    font-size: 0.85rem;
+    text-align: center;
+    margin: 0.35rem 0 1rem;
+  }
+  .listing-cap .figno { font-weight: 700; }
+
+  ul, ol { margin: 0.4rem 0 0.7rem; padding-left: 1.6rem; }
+  li { margin-bottom: 0.22rem; text-align: justify; }
+
+  .phase-meta { font-size: 0.9rem; color: var(--faint); font-style: italic; }
+
+  /* ---- references ---- */
+  .refs { font-size: 0.9rem; }
+  .refs ol { padding-left: 1.4rem; }
+  .refs li { margin-bottom: 0.4rem; }
+
+  hr.footrule { border: none; border-top: 0.8px solid var(--rule); width: 30%; margin: 2.5rem auto 0.8rem; }
+  footer { text-align: center; font-size: 0.85rem; color: var(--faint); }
+
+  .katex { font-size: 1.02em; }
+  .katex-display { margin: 0.8rem 0; }
+
+  @media (max-width: 760px) {
+    .sheet { margin: 0; padding: 2.2rem 1.3rem 3rem; box-shadow: none; }
+    .arxiv-banner { display: none; }
+    .abstract { margin: 0 0.6rem 1.6rem; }
+    p, li { text-align: left; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { animation: none !important; transition: none !important; }
+  }
+</style>
+</head>
+<body>
+
+<div class="arxiv-banner" aria-hidden="true">arXiv:2607.00001v1&nbsp;&nbsp;[eess.SP]&nbsp;&nbsp;4 Jul 2026</div>
+
+<main class="sheet">
+
+<header>
+  <h1>A Practitioner's Curriculum in Algorithms for<br>Applied Antenna Software Systems</h1>
+  <div class="authors">M. — <span style="font-size:.8em; vertical-align:super;">1</span></div>
+  <div class="affil"><sup>1</sup>Independent Study Program, Seattle, WA</div>
+  <div class="date">July 4, 2026 &nbsp;·&nbsp; Working Draft v1</div>
+</header>
+
+<section class="abstract">
+  <div class="label">Abstract</div>
+  <p>We present a six-phase, project-driven curriculum that takes a software engineer with strong systems fundamentals from raw IQ samples to a working software modem and digital beamformer, implemented entirely in C++. The curriculum treats a modern phased-array communication system (e.g., a Starlink user terminal) as its motivating artifact and decomposes it into its algorithmic layers: digital signal processing, modulation, channel coding, synchronization, and array processing. Each phase pairs the governing mathematics with a concrete implementation milestone, culminating in a multithreaded end-to-end link simulator. All source code, exercises, and this document are distributed in a single repository.</p>
+</section>
+
+<h2><span class="no">1</span>Introduction</h2>
+<p>A satellite communication terminal is, from the software engineer's point of view, a pipeline of numerical algorithms executing under real-time constraints. Bits enter one end; a steered electromagnetic beam leaves the other. Every stage in between — encoding, modulation, filtering, synchronization, beamforming — is code, and increasingly it is C++ code running on general-purpose or embedded processors rather than fixed-function hardware.</p>
+<p>This curriculum is organized around one claim: the fastest way for an experienced engineer to learn this field is to <em>build the pipeline</em>, stage by stage, validating each stage against theory before composing them. The mathematics is introduced exactly when an implementation requires it.</p>
+
+<h2><span class="no">2</span>Preliminaries: Signals as Data</h2>
+<p>All processing operates on the complex baseband representation. A real passband signal at carrier frequency $f_c$ is expressed through its in-phase and quadrature components:</p>
+<p>$$x(t) = I(t)\cos(2\pi f_c t) - Q(t)\sin(2\pi f_c t) = \Re\!\left\{\, s(t)\, e^{j 2\pi f_c t} \right\},$$</p>
+<p>where $s(t) = I(t) + jQ(t)$ is the complex envelope. In software, $s(t)$ becomes a stream of <code>std::complex&lt;float&gt;</code> (or fixed-point <code>int16_t</code> pairs) sampled at rate $f_s$, subject to the Nyquist criterion $f_s \ge 2B$ for bandwidth $B$. This stream is the fundamental data type of the entire curriculum.</p>
+
+<div class="env">
+  <span class="head">Definition 2.1 <em>(IQ stream).</em></span>
+  <span class="env-body">An IQ stream is a sequence <span class="upright">$s[n] = I[n] + jQ[n]$</span>, <span class="upright">$n = 0, 1, 2, \ldots$</span>, understood as uniform samples of a complex envelope. Every algorithm in this curriculum is a transformation of one or more IQ streams.</span>
+</div>
+
+<h2><span class="no">3</span>The Six Phases</h2>
+
+<h3><span class="no">3.1</span>Phase I — DSP Foundations <span class="phase-meta">(weeks 1–4)</span></h3>
+<p>Sampling, the DFT and its FFT realization, and FIR/IIR filtering. The student implements a radix-2 FFT and a windowed-sinc FIR filter by hand before adopting FFTW3, building intuition for memory layout and vectorization.</p>
+<p><em>Milestone.</em> A command-line spectrum analyzer: raw IQ file in, power spectral density out.</p>
+
+<h3><span class="no">3.2</span>Phase II — Digital Modulation <span class="phase-meta">(weeks 5–8)</span></h3>
+<p>Mapping bits to waveforms. For $M$-QAM, $\log_2 M$ bits select a constellation point; symbols are pulse-shaped with a root-raised-cosine filter and recovered by matched filtering. The phase closes with OFDM, whose transmit operation is a single inverse DFT:</p>
+<p>$$x[n] = \frac{1}{N}\sum_{k=0}^{N-1} X_k\, e^{\,j 2\pi k n / N}, \qquad n = 0,\ldots,N-1.$$</p>
+<p><em>Milestone.</em> A QAM modem validated against the theoretical bit-error-rate curves of Fig.&nbsp;1.</p>
+
+<figure id="fig-ber">
+  <svg id="berplot" role="img" aria-label="Bit error rate versus Eb/N0 for BPSK, QPSK and 16-QAM"></svg>
+  <figcaption><span class="figno">Figure 1:</span> Theoretical bit error rate over an AWGN channel. BPSK/QPSK follow $P_b = Q\!\left(\sqrt{2E_b/N_0}\right)$; 16-QAM pays $\approx 4$ dB for its higher spectral efficiency. Curves are computed in the browser at page load — the same curves the student's C++ simulator must reproduce empirically. </figcaption>
+</figure>
+
+<h3><span class="no">3.3</span>Phase III — Channel Coding <span class="phase-meta">(weeks 9–11)</span></h3>
+<p>The algorithmic heart of "encoding data." Convolutional codes with Viterbi decoding (dynamic programming on a trellis), interleaving, and modern graph codes. An LDPC code is defined by a sparse parity-check matrix $H$: a vector $\mathbf{c}$ is a codeword iff</p>
+<p>$$H\mathbf{c}^{\mathsf T} = \mathbf{0} \pmod 2,$$</p>
+<p>and decoding is belief propagation on the associated Tanner graph — message passing, a familiar idiom from distributed systems, here applied to probabilities. LDPC is the code family used by DVB-S2 and Starlink's downlink.</p>
+<p><em>Milestone.</em> A hand-written Viterbi decoder; measured coding gain using aff3ct's LDPC codec.</p>
+
+<h3><span class="no">3.4</span>Phase IV — Synchronization &amp; Receivers <span class="phase-meta">(weeks 12–14)</span></h3>
+<p>Carrier and timing recovery (Costas and Gardner loops), channel estimation, equalization, and Doppler compensation. A LEO satellite at $\sim$7.5 km/s imposes Doppler shifts up to $\pm\!f_c \, v/c \approx \pm 300$ kHz at Ku band — synchronization is not optional bookkeeping but a first-class algorithmic problem.</p>
+
+<h3><span class="no">3.5</span>Phase V — Phased Arrays &amp; Beamforming <span class="phase-meta">(weeks 15–18)</span></h3>
+<p>An $N$-element uniform linear array with spacing $d$ steers a beam purely in software by applying complex weights $w_n$ to each element. The far-field array factor is</p>
+<p>$$AF(\theta) = \sum_{n=0}^{N-1} w_n\, e^{\,j k d\, n \sin\theta}, \qquad k = \frac{2\pi}{\lambda},$$</p>
+<p>and choosing $w_n = e^{-j k d\, n \sin\theta_0}$ points the main lobe at $\theta_0$ with no moving parts (Fig.&nbsp;2). In C++ this is one Eigen expression, <code>w.adjoint() * snapshot</code>; the engineering is in making it fast and calibrated. Adaptive beamforming (MVDR) and direction-of-arrival estimation (MUSIC) extend the same linear-algebraic machinery.</p>
+
+<figure id="fig-af">
+  <svg id="afplot" role="img" aria-label="Array factor of an 8-element array steered to 20 degrees"></svg>
+  <figcaption><span class="figno">Figure 2:</span> Normalized array factor $|AF(\theta)|^2$ in dB for $N=8$, $d=\lambda/2$, steered to $\theta_0 = 20°$ (solid) versus broadside $\theta_0 = 0°$ (dashed). The $\sim$13 dB first sidelobe of the uniform taper motivates the windowing techniques of Phase I, now reused in the spatial domain.</figcaption>
+</figure>
+
+<p><em>Milestone.</em> An $8\times 8$ planar-array simulator in Eigen: steer a beam, null an interferer, sweep a pattern.</p>
+
+<h3><span class="no">3.6</span>Phase VI — Systems Integration <span class="phase-meta">(ongoing)</span></h3>
+<p>Link budgets, GNU Radio out-of-tree blocks in C++, and real signals via an RTL-SDR through SoapySDR. Real-time discipline is treated explicitly: lock-free ring buffers between threads, zero allocation on the hot path, fixed-point arithmetic, and SIMD vectorization of inner loops.</p>
+
+<div class="env">
+  <span class="head">Capstone.</span>
+  <span class="env-body">A multithreaded end-to-end link simulator: bits <span class="upright">$\to$</span> LDPC encode <span class="upright">$\to$</span> OFDM modulate <span class="upright">$\to$</span> AWGN + Doppler channel <span class="upright">$\to$</span> synchronize <span class="upright">$\to$</span> demodulate <span class="upright">$\to$</span> decode <span class="upright">$\to$</span> bits, with a simulated beamforming front end, benchmarked in samples per second.</span>
+</div>
+
+<h2><span class="no">4</span>Toolchain</h2>
+
+<table>
+  <caption><span class="figno">Table 1:</span> C++ toolchain by role.</caption>
+  <thead>
+    <tr><th>Role</th><th>Library</th><th>Introduced</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>FFT</td><td><code>FFTW3</code></td><td>Phase I</td></tr>
+    <tr><td>DSP primitives</td><td><code>liquid-dsp</code></td><td>Phase II</td></tr>
+    <tr><td>Channel coding</td><td><code>aff3ct</code></td><td>Phase III</td></tr>
+    <tr><td>Linear algebra</td><td><code>Eigen</code></td><td>Phase V</td></tr>
+    <tr><td>SDR framework</td><td><code>GNU Radio</code>, <code>SoapySDR</code></td><td>Phase VI</td></tr>
+    <tr><td>Build &amp; test</td><td><code>CMake</code>, <code>Catch2</code></td><td>Day one</td></tr>
+  </tbody>
+</table>
+
+<h2><span class="no">5</span>Repository and Reproducibility</h2>
+<p>The curriculum, this document, and stub implementations for every milestone are distributed as a single repository. The <code>docs/</code> directory serves this page (GitHub Pages–ready); the <code>cpp/</code> directory contains a CMake workspace with one target per phase, each stubbed with <code>TODO</code> markers and a failing unit test that the exercise makes pass.</p>
+
+<div class="listing"><pre><span class="cm"># Clone the curriculum and build the exercise skeletons</span>
+git clone https://github.com/&lt;your-username&gt;/antenna-curriculum.git
+cd antenna-curriculum/cpp
+cmake -B build -DCMAKE_BUILD_TYPE=Release
+cmake --build build -j</pre></div>
+<div class="listing-cap"><span class="figno">Listing 1:</span> Obtaining and building the repository.</div>
+
+<h2><span class="no">6</span>References</h2>
+<div class="refs">
+<ol>
+  <li>J. G. Proakis and M. Salehi, <em>Digital Communications</em>, 5th ed. McGraw-Hill, 2008.</li>
+  <li>H. L. Van Trees, <em>Optimum Array Processing</em>. Wiley, 2002.</li>
+  <li>M. Lichtman, <em>PySDR: A Guide to SDR and DSP</em>. <a href="https://pysdr.org">pysdr.org</a>. (Concept reference; all implementations here are C++.)</li>
+  <li>T. F. Collins et al., <em>Software-Defined Radio for Engineers</em>. Artech House, 2018.</li>
+  <li>A. Cassagne et al., "AFF3CT: A fast forward error correction toolbox," <em>SoftwareX</em>, vol. 10, 2019.</li>
+</ol>
+</div>
+
+<hr class="footrule">
+<footer>Typeset in the browser with KaTeX. Figures computed at load time.</footer>
+
+</main>
+
+<script>
+// ---------------------------------------------------------------
+// pgfplots-style SVG figures, computed from the actual mathematics
+// ---------------------------------------------------------------
+const NS = "http://www.w3.org/2000/svg";
+const FONT = '"KaTeX_Main", Georgia, serif';
+const MATHFONT = '"KaTeX_Math", "KaTeX_Main", serif';
+
+function el(name, attrs, parent) {
+  const e = document.createElementNS(NS, name);
+  for (const k in attrs) e.setAttribute(k, attrs[k]);
+  if (parent) parent.appendChild(e);
+  return e;
+}
+function text(str, x, y, opts, parent) {
+  const t = el("text", Object.assign({ x, y,
+    "font-family": opts.math ? MATHFONT : FONT,
+    "font-size": opts.size || 12.5,
+    "font-style": opts.math ? "italic" : "normal",
+    fill: "#111",
+    "text-anchor": opts.anchor || "middle" }, opts.attrs || {}), parent);
+  t.textContent = str;
+  return t;
+}
+
+// Q-function via erfc series (Abramowitz & Stegun 7.1.26)
+function erfc(x) {
+  const z = Math.abs(x), t = 1 / (1 + 0.5 * z);
+  const r = t * Math.exp(-z * z - 1.26551223 + t * (1.00002368 + t * (0.37409196 +
+    t * (0.09678418 + t * (-0.18628806 + t * (0.27886807 + t * (-1.13520398 +
+    t * (1.48851587 + t * (-0.82215223 + t * 0.17087277)))))))));
+  return x >= 0 ? r : 2 - r;
+}
+const Q = x => 0.5 * erfc(x / Math.SQRT2);
+
+function frame(svg, W, H, m) {
+  svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
+  svg.setAttribute("width", W);
+  el("rect", { x: m.l, y: m.t, width: W - m.l - m.r, height: H - m.t - m.b,
+               fill: "none", stroke: "#111", "stroke-width": 1 }, svg);
+}
+
+// ----------------------- Figure 1: BER curves -----------------------
+(function () {
+  const svg = document.getElementById("berplot");
+  const W = 520, H = 340, m = { l: 64, t: 18, r: 16, b: 46 };
+  frame(svg, W, H, m);
+  const pw = W - m.l - m.r, ph = H - m.t - m.b;
+  const x0 = 0, x1 = 12;                    // Eb/N0 dB
+  const lymin = -6, lymax = 0;              // log10(BER)
+  const X = db => m.l + (db - x0) / (x1 - x0) * pw;
+  const Y = lp => m.t + (lymax - lp) / (lymax - lymin) * ph;
+
+  // grid + ticks
+  for (let d = 0; d <= 6; d++) {            // decades
+    const lp = -d, y = Y(lp);
+    if (d > 0 && d < 6) el("line", { x1: m.l, y1: y, x2: W - m.r, y2: y,
+      stroke: "#111", "stroke-width": 0.4, "stroke-dasharray": "1.5 3", opacity: 0.45 }, svg);
+    el("line", { x1: m.l - 4, y1: y, x2: m.l, y2: y, stroke: "#111", "stroke-width": 1 }, svg);
+    const lab = text("10", m.l - 22, y + 4, { size: 12 }, svg);
+    text("\u2212" + d, m.l - 10, y - 1, { size: 9 }, svg);
+    if (d === 0) { lab.textContent = "10"; }
+  }
+  for (let d = 0; d <= 12; d += 2) {
+    const x = X(d);
+    el("line", { x1: x, y1: H - m.b, x2: x, y2: H - m.b + 4, stroke: "#111", "stroke-width": 1 }, svg);
+    text(String(d), x, H - m.b + 17, { size: 12 }, svg);
+    if (d > 0 && d < 12) el("line", { x1: x, y1: m.t, x2: x, y2: H - m.b,
+      stroke: "#111", "stroke-width": 0.4, "stroke-dasharray": "1.5 3", opacity: 0.45 }, svg);
+  }
+  text("E", X(6) - 22, H - 8, { math: true, size: 13 }, svg);
+  text("b", X(6) - 15, H - 5, { math: true, size: 9 }, svg);
+  text("/N", X(6) - 3, H - 8, { math: true, size: 13 }, svg);
+  text("0", X(6) + 10, H - 5, { math: true, size: 9 }, svg);
+  text("(dB)", X(6) + 36, H - 8, { size: 12 }, svg);
+  const yl = text("Bit error rate", 0, 0, { size: 12.5 }, svg);
+  yl.setAttribute("transform", `translate(15 ${m.t + ph / 2}) rotate(-90)`);
+
+  // curves
+  const curves = [
+    { name: "BPSK / QPSK", ber: g => Q(Math.sqrt(2 * g)), dash: "" },
+    { name: "16-QAM", ber: g => 0.75 * Q(Math.sqrt(0.8 * g)), dash: "6 3" },
+  ];
+  curves.forEach(c => {
+    let dstr = "";
+    for (let d = x0; d <= x1; d += 0.1) {
+      const g = Math.pow(10, d / 10);
+      const p = Math.max(c.ber(g), 1e-12);
+      const lp = Math.log10(p);
+      if (lp < lymin) break;
+      dstr += (dstr ? "L" : "M") + X(d).toFixed(1) + " " + Y(lp).toFixed(1);
+    }
+    el("path", { d: dstr, fill: "none", stroke: "#111", "stroke-width": 1.4,
+                 "stroke-dasharray": c.dash }, svg);
+  });
+  // legend
+  const lx = m.l + 14, ly = m.t + 16;
+  el("rect", { x: lx - 8, y: ly - 12, width: 128, height: 40, fill: "#fff", stroke: "#111", "stroke-width": 0.7 }, svg);
+  el("line", { x1: lx, y1: ly - 1, x2: lx + 26, y2: ly - 1, stroke: "#111", "stroke-width": 1.4 }, svg);
+  text("BPSK / QPSK", lx + 32, ly + 3, { size: 11.5, anchor: "start" }, svg);
+  el("line", { x1: lx, y1: ly + 17, x2: lx + 26, y2: ly + 17, stroke: "#111", "stroke-width": 1.4, "stroke-dasharray": "6 3" }, svg);
+  text("16-QAM", lx + 32, ly + 21, { size: 11.5, anchor: "start" }, svg);
+})();
+
+// -------------------- Figure 2: array factor --------------------
+(function () {
+  const svg = document.getElementById("afplot");
+  const W = 520, H = 320, m = { l: 60, t: 18, r: 16, b: 46 };
+  frame(svg, W, H, m);
+  const pw = W - m.l - m.r, ph = H - m.t - m.b;
+  const th0 = -90, th1 = 90, y0 = -40, y1 = 0;   // deg, dB
+  const X = th => m.l + (th - th0) / (th1 - th0) * pw;
+  const Y = dB => m.t + (y1 - dB) / (y1 - y0) * ph;
+
+  for (let t = -90; t <= 90; t += 30) {
+    const x = X(t);
+    el("line", { x1: x, y1: H - m.b, x2: x, y2: H - m.b + 4, stroke: "#111", "stroke-width": 1 }, svg);
+    text((t < 0 ? "\u2212" : "") + Math.abs(t) + "\u00B0", x, H - m.b + 17, { size: 12 }, svg);
+    if (t > -90 && t < 90) el("line", { x1: x, y1: m.t, x2: x, y2: H - m.b,
+      stroke: "#111", "stroke-width": 0.4, "stroke-dasharray": "1.5 3", opacity: 0.45 }, svg);
+  }
+  for (let dB = -40; dB <= 0; dB += 10) {
+    const y = Y(dB);
+    el("line", { x1: m.l - 4, y1: y, x2: m.l, y2: y, stroke: "#111", "stroke-width": 1 }, svg);
+    text(String(dB).replace("-", "\u2212"), m.l - 20, y + 4, { size: 12 }, svg);
+    if (dB > -40 && dB < 0) el("line", { x1: m.l, y1: y, x2: W - m.r, y2: y,
+      stroke: "#111", "stroke-width": 0.4, "stroke-dasharray": "1.5 3", opacity: 0.45 }, svg);
+  }
+  text("\u03B8", X(0) - 30, H - 8, { math: true, size: 14 }, svg);
+  text("(degrees from broadside)", X(0) + 55, H - 8, { size: 12 }, svg);
+  const yl = text("|AF(\u03B8)|\u00B2  (dB)", 0, 0, { math: true, size: 12.5 }, svg);
+  yl.setAttribute("transform", `translate(15 ${m.t + ph / 2}) rotate(-90)`);
+
+  const N = 8, kd = Math.PI; // d = lambda/2
+  function af(thetaDeg, steerDeg, dash) {
+    const s0 = Math.sin(steerDeg * Math.PI / 180);
+    let dstr = "", pen = false;
+    for (let t = th0; t <= th1; t += 0.25) {
+      const s = Math.sin(t * Math.PI / 180);
+      let re = 0, im = 0;
+      for (let n = 0; n < N; n++) {
+        const ph_ = kd * n * (s - s0);
+        re += Math.cos(ph_); im += Math.sin(ph_);
+      }
+      const mag = (re * re + im * im) / (N * N);
+      const dB = 10 * Math.log10(Math.max(mag, 1e-9));
+      if (dB < y0) { pen = false; continue; }
+      dstr += (pen ? "L" : "M") + X(t).toFixed(1) + " " + Y(dB).toFixed(1);
+      pen = true;
+    }
+    el("path", { d: dstr, fill: "none", stroke: "#111", "stroke-width": 1.3,
+                 "stroke-dasharray": dash }, svg);
+  }
+  af(0, 0, "5 3");    // broadside, dashed
+  af(0, 20, "");      // steered, solid
+
+  const lx = W - m.r - 132, ly = m.t + 16;
+  el("rect", { x: lx - 8, y: ly - 12, width: 132, height: 40, fill: "#fff", stroke: "#111", "stroke-width": 0.7 }, svg);
+  el("line", { x1: lx, y1: ly - 1, x2: lx + 24, y2: ly - 1, stroke: "#111", "stroke-width": 1.3 }, svg);
+  text("\u03B8\u2080 = 20\u00B0 (steered)", lx + 30, ly + 3, { size: 11.5, anchor: "start" }, svg);
+  el("line", { x1: lx, y1: ly + 17, x2: lx + 24, y2: ly + 17, stroke: "#111", "stroke-width": 1.3, "stroke-dasharray": "5 3" }, svg);
+  text("\u03B8\u2080 = 0\u00B0 (broadside)", lx + 30, ly + 21, { size: 11.5, anchor: "start" }, svg);
+})();
+
+// ----------------------- KaTeX auto-render -----------------------
+document.addEventListener("DOMContentLoaded", () => {
+  renderMathInElement(document.body, {
+    delimiters: [
+      { left: "$$", right: "$$", display: true },
+      { left: "$", right: "$", display: false }
+    ]
+  });
+});
+</script>
+</body>
+</html>
