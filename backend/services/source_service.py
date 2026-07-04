@@ -38,6 +38,27 @@ def resolve_source_path(relative_path: str) -> Path:
     return resolved
 
 
+def validate_source_kind(file_path: Path, kind: SourceKind) -> None:
+    """Verify a source file's actual content matches its declared kind.
+
+    Raises:
+        ValidationError: If a ``pdf`` source doesn't start with the PDF
+            magic bytes, or a ``text`` source isn't valid UTF-8 text.
+    """
+    if kind is SourceKind.pdf:
+        with file_path.open("rb") as fh:
+            magic = fh.read(5)
+        if magic != b"%PDF-":
+            raise ValidationError(f"'{file_path.name}' is not a PDF file (kind=pdf)")
+    else:
+        try:
+            file_path.read_text(encoding="utf-8")
+        except UnicodeDecodeError as exc:
+            raise ValidationError(
+                f"'{file_path.name}' is not valid UTF-8 text (kind=text)"
+            ) from exc
+
+
 def extract_page_range(source: Source, page_start: int, page_end: int) -> str:
     """Extract text for an inclusive, 1-indexed page range of a source.
 
@@ -54,13 +75,13 @@ def extract_page_range(source: Source, page_start: int, page_end: int) -> str:
         if page_end > total:
             raise ValidationError(f"page_end {page_end} exceeds document length ({total} pages)")
         pages = reader.pages[page_start - 1 : page_end]
-        return "\n\n".join(page.extract_text() or "" for page in pages).strip()
+        return "\n\n".join(page.extract_text() or "" for page in pages).rstrip()
 
     lines = file_path.read_text(encoding="utf-8").splitlines()
     total = len(lines)
     if page_end > total:
         raise ValidationError(f"page_end {page_end} exceeds document length ({total} lines)")
-    return "\n".join(lines[page_start - 1 : page_end]).strip()
+    return "\n".join(lines[page_start - 1 : page_end]).rstrip()
 
 
 class SourceService:
@@ -74,10 +95,12 @@ class SourceService:
         """Register a source file for citation.
 
         Raises:
-            ValidationError: If the file is missing or the path is unsafe.
+            ValidationError: If the file is missing, the path is unsafe, or
+                the file's actual content doesn't match the declared kind.
             ConflictError: If the bibkey is already registered.
         """
-        resolve_source_path(payload.path)
+        resolved = resolve_source_path(payload.path)
+        validate_source_kind(resolved, payload.kind)
         existing = await self._db.scalar(select(Source).where(Source.bibkey == payload.bibkey))
         if existing is not None:
             raise ConflictError(f"Source with bibkey '{payload.bibkey}' already exists")

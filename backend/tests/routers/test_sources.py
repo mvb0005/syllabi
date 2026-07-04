@@ -101,6 +101,28 @@ async def test_create_source_path_traversal_rejected(client: AsyncClient) -> Non
 
 
 @pytest.mark.asyncio
+async def test_create_source_kind_mismatch_text_as_pdf(client: AsyncClient) -> None:
+    """POST /sources/ rejects a plain-text file registered as kind=pdf."""
+    await _login_instructor(client)
+    payload = _text_source_payload() | {"kind": "pdf", "path": "notes.txt"}
+    resp = await client.post("/sources/", json=payload)
+    assert resp.status_code == 422
+
+
+@pytest.mark.asyncio
+async def test_create_source_kind_mismatch_pdf_as_text(client: AsyncClient) -> None:
+    """POST /sources/ rejects a PDF file registered as kind=text."""
+    await _login_instructor(client)
+    payload = _text_source_payload() | {
+        "bibkey": f"pdf{uuid.uuid4().hex[:8]}",
+        "kind": "text",
+        "path": "blank.pdf",
+    }
+    resp = await client.post("/sources/", json=payload)
+    assert resp.status_code == 422
+
+
+@pytest.mark.asyncio
 async def test_create_excerpt_extracts_text_range(client: AsyncClient) -> None:
     """POST /sources/{id}/excerpts caches the extracted line range."""
     await _login_instructor(client)
