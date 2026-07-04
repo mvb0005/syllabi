@@ -49,7 +49,7 @@ export interface UserPublic {
   email: string
   full_name: string
   role: 'student' | 'instructor' | 'admin'
-  created_at: string
+  is_active: boolean
 }
 
 export interface UserCreate {
@@ -77,13 +77,12 @@ export interface CoursePublic {
   title: string
   description: string
   instructor_id: string
-  created_at: string
+  is_published: boolean
 }
 
 export interface CourseCreate {
   title: string
   description: string
-  instructor_id: string
 }
 
 export function listCourses(): Promise<CoursePublic[]> {
@@ -101,6 +100,47 @@ export function getCourse(courseId: string): Promise<CoursePublic> {
   return request<CoursePublic>(`/courses/${courseId}`)
 }
 
+// ---- Modules ---------------------------------------------------------------
+
+export interface ModulePublic {
+  id: string
+  course_id: string
+  title: string
+  order_index: number
+  content_md: string
+}
+
+export function listModules(courseId: string): Promise<ModulePublic[]> {
+  return request<ModulePublic[]>(`/courses/${courseId}/modules`)
+}
+
+// ---- Assignments -----------------------------------------------------------
+
+export type GradingType = 'deterministic' | 'llm_rubric' | 'hybrid'
+
+export interface AssignmentPublic {
+  id: string
+  module_id: string
+  title: string
+  description_md: string
+  grading_type: GradingType
+  max_score: number
+  due_at: string | null
+}
+
+export function listAssignments(moduleId: string): Promise<AssignmentPublic[]> {
+  return request<AssignmentPublic[]>(
+    `/assignments/?module_id=${encodeURIComponent(moduleId)}`,
+  )
+}
+
+/** All assignments across a course's modules, ordered by module order. */
+export function listCourseAssignments(
+  courseId: string,
+): Promise<AssignmentPublic[]> {
+  return request<AssignmentPublic[]>(`/courses/${courseId}/assignments`)
+}
+
 // ---- Submissions -----------------------------------------------------------
 
 export interface SubmissionPublic {
@@ -114,7 +154,6 @@ export interface SubmissionPublic {
 
 export interface SubmissionCreate {
   assignment_id: string
-  student_id: string
   content: string
 }
 

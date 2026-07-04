@@ -25,6 +25,19 @@ async def create_assignment(
     return AssignmentPublic.model_validate(assignment)
 
 
+@router.get("/", response_model=list[AssignmentPublic])
+async def list_assignments(
+    module_id: str,
+    db: AsyncSession = Depends(get_db),
+) -> list[AssignmentPublic]:
+    """List a module's assignments ordered by creation time."""
+    try:
+        assignments = await CourseService(db).list_assignments(module_id)
+    except NotFoundError as exc:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
+    return [AssignmentPublic.model_validate(assignment) for assignment in assignments]
+
+
 @router.get("/{assignment_id}", response_model=AssignmentPublic)
 async def get_assignment(
     assignment_id: str,
