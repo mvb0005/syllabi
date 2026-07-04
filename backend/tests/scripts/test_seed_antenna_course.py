@@ -22,9 +22,13 @@ async def test_seed_creates_course_with_six_modules(db_session: AsyncSession) ->
     assert course.title == COURSE_TITLE
     assert course.is_published is True
 
-    modules = (await db_session.scalars(select(Module).where(Module.course_id == course.id))).all()
+    modules = (
+        await db_session.scalars(
+            select(Module).where(Module.course_id == course.id).order_by(Module.order_index)
+        )
+    ).all()
     assert len(modules) == 6
-    assert [m.order_index for m in sorted(modules, key=lambda m: m.order_index)] == list(range(6))
+    assert [m.order_index for m in modules] == list(range(6))
     assert modules[0].title.startswith("Phase I")
 
 
