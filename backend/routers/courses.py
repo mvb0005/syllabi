@@ -46,6 +46,28 @@ async def create_course(
     return CoursePublic.model_validate(course)
 
 
+@router.get("/", response_model=list[CoursePublic])
+async def list_courses(
+    db: AsyncSession = Depends(get_db),
+) -> list[CoursePublic]:
+    """List all courses, most recently created first."""
+    courses = await CourseService(db).list_courses()
+    return [CoursePublic.model_validate(course) for course in courses]
+
+
+@router.get("/{course_id}/modules", response_model=list[ModulePublic])
+async def list_modules(
+    course_id: str,
+    db: AsyncSession = Depends(get_db),
+) -> list[ModulePublic]:
+    """List a course's modules ordered by ``order_index``."""
+    try:
+        modules = await CourseService(db).list_modules(course_id)
+    except NotFoundError as exc:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
+    return [ModulePublic.model_validate(module) for module in modules]
+
+
 @router.get("/{course_id}", response_model=CoursePublic)
 async def get_course(
     course_id: str,

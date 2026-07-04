@@ -65,3 +65,42 @@ async def test_update_course(client: AsyncClient) -> None:
     assert response.status_code == 200
     assert response.json()["title"] == "New Title"
     assert response.json()["is_published"] is True
+
+
+@pytest.mark.asyncio
+async def test_list_courses(client: AsyncClient) -> None:
+    """GET /courses/ returns created courses."""
+    await _make_and_login_instructor(client)
+    created = await client.post("/courses/", json={"title": "Listable Course"})
+    assert created.status_code == 201
+
+    response = await client.get("/courses/")
+    assert response.status_code == 200
+    titles = [c["title"] for c in response.json()]
+    assert "Listable Course" in titles
+
+
+@pytest.mark.asyncio
+async def test_list_modules_ordered(client: AsyncClient) -> None:
+    """GET /courses/{id}/modules returns modules sorted by order_index."""
+    await _make_and_login_instructor(client)
+    create_resp = await client.post("/courses/", json={"title": "Modular Course"})
+    course_id = create_resp.json()["id"]
+
+    for title, order_index in [("Second", 1), ("First", 0), ("Third", 2)]:
+        module_resp = await client.post(
+            f"/courses/{course_id}/modules",
+            json={"title": title, "order_index": order_index},
+        )
+        assert module_resp.status_code == 201
+
+    response = await client.get(f"/courses/{course_id}/modules")
+    assert response.status_code == 200
+    assert [m["title"] for m in response.json()] == ["First", "Second", "Third"]
+
+
+@pytest.mark.asyncio
+async def test_list_modules_course_not_found(client: AsyncClient) -> None:
+    """GET /courses/{id}/modules returns 404 for an unknown course."""
+    response = await client.get("/courses/does-not-exist/modules")
+    assert response.status_code == 404

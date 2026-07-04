@@ -1,5 +1,6 @@
 """Course service — business logic for courses, modules, and assignments."""
 
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.exceptions import NotFoundError
@@ -42,6 +43,11 @@ class CourseService:
         await self._db.refresh(course)
         return course
 
+    async def list_courses(self) -> list[Course]:
+        """Return all courses, most recently created first."""
+        result = await self._db.scalars(select(Course).order_by(Course.created_at.desc()))
+        return list(result)
+
     async def get_course(self, course_id: str) -> Course:
         """Retrieve a course by primary key.
 
@@ -83,6 +89,33 @@ class CourseService:
         await self._db.commit()
         await self._db.refresh(module)
         return module
+
+    async def list_modules(self, course_id: str) -> list[Module]:
+        """Return a course's modules ordered by ``order_index``.
+
+        Raises:
+            NotFoundError: If the course does not exist.
+        """
+        await self.get_course(course_id)
+        result = await self._db.scalars(
+            select(Module).where(Module.course_id == course_id).order_by(Module.order_index)
+        )
+        return list(result)
+
+    async def list_assignments(self, module_id: str) -> list[Assignment]:
+        """Return a module's assignments ordered by creation time.
+
+        Raises:
+            NotFoundError: If the module does not exist.
+        """
+        if await self._db.get(Module, module_id) is None:
+            raise NotFoundError("Module", module_id)
+        result = await self._db.scalars(
+            select(Assignment)
+            .where(Assignment.module_id == module_id)
+            .order_by(Assignment.created_at)
+        )
+        return list(result)
 
     async def create_assignment(self, module_id: str, payload: AssignmentCreate) -> Assignment:
         """Create an assignment for an existing module.
