@@ -21,6 +21,12 @@ frontend/dist/
 # VS Code
 .vscode/settings.json
 
+# Source files (textbook PDFs, notes) — never commit copyrighted material.
+# Place files locally under sources/; the devcontainer bind-mounts the repo
+# root, so the backend sees them at runtime without them touching git.
+sources/*
+!sources/README.md
+
 # OS
 .DS_Store
 Thumbs.db
