@@ -7,6 +7,7 @@ from backend.database import get_db
 from backend.dependencies import get_current_user, instructor_required
 from backend.exceptions import ConflictError, NotFoundError
 from backend.models.user import User, UserRole
+from backend.schemas.assignment import AssignmentPublic
 from backend.schemas.course import (
     CourseCreate,
     CoursePublic,
@@ -66,6 +67,19 @@ async def list_modules(
     except NotFoundError as exc:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
     return [ModulePublic.model_validate(module) for module in modules]
+
+
+@router.get("/{course_id}/assignments", response_model=list[AssignmentPublic])
+async def list_course_assignments(
+    course_id: str,
+    db: AsyncSession = Depends(get_db),
+) -> list[AssignmentPublic]:
+    """List all assignments across a course's modules, in module order."""
+    try:
+        assignments = await CourseService(db).list_assignments_for_course(course_id)
+    except NotFoundError as exc:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
+    return [AssignmentPublic.model_validate(assignment) for assignment in assignments]
 
 
 @router.get("/{course_id}", response_model=CoursePublic)

@@ -102,6 +102,24 @@ class CourseService:
         )
         return list(result)
 
+    async def list_assignments_for_course(self, course_id: str) -> list[Assignment]:
+        """Return all assignments across a course's modules.
+
+        Ordered by the parent module's ``order_index``, then creation time,
+        so callers can render a whole course without one query per module.
+
+        Raises:
+            NotFoundError: If the course does not exist.
+        """
+        await self.get_course(course_id)
+        result = await self._db.scalars(
+            select(Assignment)
+            .join(Module, Assignment.module_id == Module.id)
+            .where(Module.course_id == course_id)
+            .order_by(Module.order_index, Assignment.created_at)
+        )
+        return list(result)
+
     async def list_assignments(self, module_id: str) -> list[Assignment]:
         """Return a module's assignments ordered by creation time.
 

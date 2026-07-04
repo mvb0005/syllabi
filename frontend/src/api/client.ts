@@ -134,6 +134,13 @@ export function listAssignments(moduleId: string): Promise<AssignmentPublic[]> {
   )
 }
 
+/** All assignments across a course's modules, ordered by module order. */
+export function listCourseAssignments(
+  courseId: string,
+): Promise<AssignmentPublic[]> {
+  return request<AssignmentPublic[]>(`/courses/${courseId}/assignments`)
+}
+
 // ---- Submissions -----------------------------------------------------------
 
 export interface SubmissionPublic {

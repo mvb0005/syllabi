@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import {
   getCourse,
-  listAssignments,
+  listCourseAssignments,
   listModules,
   type AssignmentPublic,
   type CoursePublic,
@@ -35,14 +35,18 @@ export function CoursePage() {
 
   useEffect(() => {
     if (!courseId) return
-    Promise.all([getCourse(courseId), listModules(courseId)])
-      .then(async ([courseData, modules]) => {
-        const assignments = await Promise.all(
-          modules.map((m) => listAssignments(m.id)),
-        )
+    Promise.all([
+      getCourse(courseId),
+      listModules(courseId),
+      listCourseAssignments(courseId),
+    ])
+      .then(([courseData, modules, assignments]) => {
         setCourse(courseData)
         setSections(
-          modules.map((module, i) => ({ module, assignments: assignments[i] })),
+          modules.map((module) => ({
+            module,
+            assignments: assignments.filter((a) => a.module_id === module.id),
+          })),
         )
       })
       .catch((err: unknown) =>

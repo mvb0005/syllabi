@@ -15,6 +15,7 @@ export function DashboardPage() {
   const [health, setHealth] = useState<HealthResponse | null>(null)
   const [healthError, setHealthError] = useState<string | null>(null)
   const [courses, setCourses] = useState<CoursePublic[] | null>(null)
+  const [coursesError, setCoursesError] = useState<string | null>(null)
 
   useEffect(() => {
     getHealth()
@@ -24,7 +25,9 @@ export function DashboardPage() {
       )
     listCourses()
       .then(setCourses)
-      .catch(() => setCourses(null))
+      .catch((err: unknown) =>
+        setCoursesError(err instanceof Error ? err.message : 'Unknown error'),
+      )
   }, [])
 
   return (
@@ -52,7 +55,15 @@ export function DashboardPage() {
         <h2 className="mb-2 text-lg font-bold">
           <span className="mr-4">1</span>In this issue
         </h2>
-        {courses && courses.length > 0 ? (
+        {coursesError ? (
+          <p className="text-sm text-destructive">
+            The contents could not be retrieved: {coursesError}
+          </p>
+        ) : courses === null ? (
+          <p className="text-sm italic text-muted-foreground">
+            Retrieving the contents…
+          </p>
+        ) : courses.length > 0 ? (
           <ol className="ml-6 list-decimal space-y-1.5">
             {courses.map((course) => (
               <li key={course.id}>

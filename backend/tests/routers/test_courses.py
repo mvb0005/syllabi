@@ -104,3 +104,41 @@ async def test_list_modules_course_not_found(client: AsyncClient) -> None:
     """GET /courses/{id}/modules returns 404 for an unknown course."""
     response = await client.get("/courses/does-not-exist/modules")
     assert response.status_code == 404
+
+
+@pytest.mark.asyncio
+async def test_list_course_assignments_in_module_order(client: AsyncClient) -> None:
+    """GET /courses/{id}/assignments returns all assignments, module order first."""
+    await _make_and_login_instructor(client)
+    create_resp = await client.post("/courses/", json={"title": "Assignment-laden Course"})
+    course_id = create_resp.json()["id"]
+
+    # Create modules out of order so ordering is meaningful.
+    module_ids: dict[str, str] = {}
+    for title, order_index in [("Later Module", 1), ("Early Module", 0)]:
+        module_resp = await client.post(
+            f"/courses/{course_id}/modules",
+            json={"title": title, "order_index": order_index},
+        )
+        module_ids[title] = module_resp.json()["id"]
+
+    for module_title, assignment_title in [
+        ("Later Module", "Exercise B"),
+        ("Early Module", "Exercise A"),
+    ]:
+        assignment_resp = await client.post(
+            f"/assignments/?module_id={module_ids[module_title]}",
+            json={"title": assignment_title},
+        )
+        assert assignment_resp.status_code == 201
+
+    response = await client.get(f"/courses/{course_id}/assignments")
+    assert response.status_code == 200
+    assert [a["title"] for a in response.json()] == ["Exercise A", "Exercise B"]
+
+
+@pytest.mark.asyncio
+async def test_list_course_assignments_course_not_found(client: AsyncClient) -> None:
+    """GET /courses/{id}/assignments returns 404 for an unknown course."""
+    response = await client.get("/courses/does-not-exist/assignments")
+    assert response.status_code == 404
