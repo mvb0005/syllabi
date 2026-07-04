@@ -6,9 +6,9 @@
 <title>A Curriculum in Algorithms for Applied Antenna Software Systems</title>
 
 <!-- KaTeX: math rendering + Computer Modern fonts -->
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
-<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
-<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" integrity="sha384-nB0miv6/jRmo5UMMR1wu3Gz6NLsoTkbqJghGIsx//Rlm+ZU03BU6SQNC66uf4l5+" crossorigin="anonymous">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js" integrity="sha384-7zkQWkzuo3B5mTepMUcHkMB5jZaolc2xDwL6VFqjFALcbeS9Ggm/Yr2r3Dy4lfFg" crossorigin="anonymous"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js" integrity="sha384-43gviWU0YVjaDtb/GhzOouOXtZMP/7XUzwPTstBeZFe/+rCMvRwr4yROQP43s0Xk" crossorigin="anonymous"></script>
 
 <style>
   :root {
@@ -257,7 +257,7 @@
   <figcaption><span class="figno">Figure 2:</span> Normalized array factor $|AF(\theta)|^2$ in dB for $N=8$, $d=\lambda/2$, steered to $\theta_0 = 20°$ (solid) versus broadside $\theta_0 = 0°$ (dashed). The $\sim$13 dB first sidelobe of the uniform taper motivates the windowing techniques of Phase I, now reused in the spatial domain.</figcaption>
 </figure>
 
-<p><em>Milestone.</em> An $8\times 8$ planar-array simulator in Eigen: steer a beam, null an interferer, sweep a pattern.</p>
+<p><em>Milestone.</em> An $N=8$-element $\lambda/2$ linear-array beamformer in Eigen: steer a beam, null an interferer, sweep a pattern. Extension: generalize to an $8\times 8$ planar array.</p>
 
 <h3><span class="no">3.6</span>Phase VI — Systems Integration <span class="phase-meta">(ongoing)</span></h3>
 <p>Link budgets, GNU Radio out-of-tree blocks in C++, and real signals via an RTL-SDR through SoapySDR. Real-time discipline is treated explicitly: lock-free ring buffers between threads, zero allocation on the hot path, fixed-point arithmetic, and SIMD vectorization of inner loops.</p>

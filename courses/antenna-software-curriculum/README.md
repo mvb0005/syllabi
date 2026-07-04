@@ -52,7 +52,7 @@ required for math rendering.)
 | II | Digital modulation | QAM modem, BER validated against theory |
 | III | Channel coding | Viterbi decoder; LDPC coding gain via aff3ct |
 | IV | Synchronization | Carrier/timing recovery, Doppler correction |
-| V | Phased arrays | 8×8 Eigen beamformer: steer, null, sweep |
+| V | Phased arrays | 8-element λ/2 Eigen beamformer: steer, null, sweep (8×8 planar as extension) |
 | VI | Systems integration | GNU Radio blocks, RTL-SDR, real-time discipline |
 
 **Capstone:** a multithreaded end-to-end link simulator — bits → LDPC → OFDM →

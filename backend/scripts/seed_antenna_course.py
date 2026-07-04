@@ -226,8 +226,9 @@ def _module_specs() -> list[ModuleSpec]:
                 "`w.adjoint() * snapshot`; the engineering is in making it fast and "
                 "calibrated. Adaptive beamforming (MVDR) and direction-of-arrival "
                 "estimation (MUSIC) extend the same linear-algebraic machinery.\n\n"
-                "**Milestone:** an 8x8 planar-array simulator in Eigen: steer a beam, null "
-                "an interferer, sweep a pattern."
+                "**Milestone:** an 8-element λ/2 linear-array beamformer in Eigen: steer "
+                "a beam, null an interferer, sweep a pattern. Extension: generalize to an "
+                "8x8 planar array."
             ),
             assignments=[
                 AssignmentSpec(
