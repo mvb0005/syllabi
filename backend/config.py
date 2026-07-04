@@ -15,6 +15,9 @@ class Settings(BaseSettings):
     GROQ_API_KEY: str = ""
     ENVIRONMENT: str = "development"
     CORS_ORIGINS: list[str] = ["http://localhost:5173"]
+    # Directory holding third-party source files (textbook PDFs, notes).
+    # Relative paths are resolved against the process working directory.
+    SOURCES_DIR: str = "sources"
 
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
