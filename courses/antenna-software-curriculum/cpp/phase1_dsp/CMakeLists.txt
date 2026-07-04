@@ -1,0 +1,6 @@
+add_executable(phase1_dsp main.cpp)
+add_test(NAME phase1_dsp COMMAND phase1_dsp)
+if(TARGET PkgConfig::FFTW3F)
+  target_link_libraries(phase1_dsp PRIVATE PkgConfig::FFTW3F)
+  target_compile_definitions(phase1_dsp PRIVATE HAVE_FFTW=1)
+endif()
