@@ -14,6 +14,7 @@ from backend.schemas.course import (
     CourseUpdate,
     ModuleCreate,
     ModulePublic,
+    ModuleUpdate,
 )
 from backend.schemas.enrollment import EnrollmentCreate, EnrollmentPublic
 from backend.schemas.source import SourceExcerptPublic
@@ -123,6 +124,21 @@ async def update_course(
     except NotFoundError as exc:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
     return CoursePublic.model_validate(course)
+
+
+@router.patch("/{course_id}/modules/{module_id}", response_model=ModulePublic)
+async def update_module(
+    course_id: str,
+    module_id: str,
+    payload: ModuleUpdate,
+    db: AsyncSession = Depends(get_db),
+) -> ModulePublic:
+    """Update a module (e.g. its distilled lesson content)."""
+    try:
+        module = await CourseService(db).update_module(course_id, module_id, payload)
+    except NotFoundError as exc:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
+    return ModulePublic.model_validate(module)
 
 
 @router.post(

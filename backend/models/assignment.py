@@ -37,6 +37,11 @@ class Assignment(Base, TimestampMixin):
     due_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True, default=None
     )
+    # Editable starting source for in-browser code milestones ("" = none).
+    starter_code: Mapped[str] = mapped_column(Text, nullable=False, default="")
+    # Fixed test harness appended server-side at compile time; never sent
+    # to clients, so students cannot edit the tests they are graded by.
+    test_code: Mapped[str] = mapped_column(Text, nullable=False, default="")
 
     test_cases: Mapped[list["TestCase"]] = relationship(
         "TestCase", back_populates="assignment", cascade="all, delete-orphan"

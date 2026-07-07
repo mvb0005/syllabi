@@ -18,6 +18,8 @@ class Settings(BaseSettings):
     # Directory holding third-party source files (textbook PDFs, notes).
     # Relative paths are resolved against the process working directory.
     SOURCES_DIR: str = "sources"
+    # In-browser milestone compile service (see compiler/).
+    COMPILER_URL: str = "http://compiler:8080"
 
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 

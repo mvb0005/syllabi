@@ -142,3 +142,42 @@ async def test_list_course_assignments_course_not_found(client: AsyncClient) -> 
     """GET /courses/{id}/assignments returns 404 for an unknown course."""
     response = await client.get("/courses/does-not-exist/assignments")
     assert response.status_code == 404
+
+
+@pytest.mark.asyncio
+async def test_update_module_content(client: AsyncClient) -> None:
+    """PATCH /courses/{id}/modules/{mid} updates the lesson content."""
+    await _make_and_login_instructor(client)
+    create_resp = await client.post("/courses/", json={"title": "Editable Course"})
+    course_id = create_resp.json()["id"]
+    module_resp = await client.post(
+        f"/courses/{course_id}/modules", json={"title": "Lesson", "order_index": 0}
+    )
+    module_id = module_resp.json()["id"]
+
+    response = await client.patch(
+        f"/courses/{course_id}/modules/{module_id}",
+        json={"content_md": "## Distilled lesson\n\nCore idea."},
+    )
+    assert response.status_code == 200
+    assert response.json()["content_md"].startswith("## Distilled lesson")
+
+    listing = await client.get(f"/courses/{course_id}/modules")
+    assert listing.json()[0]["content_md"].startswith("## Distilled lesson")
+
+
+@pytest.mark.asyncio
+async def test_update_module_wrong_course(client: AsyncClient) -> None:
+    """PATCH /courses/{id}/modules/{mid} 404s when the module is not in the course."""
+    await _make_and_login_instructor(client)
+    a_resp = await client.post("/courses/", json={"title": "Course A"})
+    b_resp = await client.post("/courses/", json={"title": "Course B"})
+    module_resp = await client.post(
+        f"/courses/{a_resp.json()['id']}/modules", json={"title": "A module"}
+    )
+
+    response = await client.patch(
+        f"/courses/{b_resp.json()['id']}/modules/{module_resp.json()['id']}",
+        json={"content_md": "hijack"},
+    )
+    assert response.status_code == 404

@@ -7,7 +7,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from backend.config import settings
-from backend.routers import assignments, courses, health, sources, submissions, users
+from backend.routers import assignments, courses, execute, health, sources, submissions, users
 from backend.routers.auth import router as auth_router
 
 
@@ -44,6 +44,7 @@ def create_app() -> FastAPI:
     app.include_router(courses.router)
     app.include_router(assignments.router)
     app.include_router(sources.router)
+    app.include_router(execute.router)
     app.include_router(submissions.router)
 
     return app

@@ -1,8 +1,11 @@
 """Source service — registering sources and extracting cited excerpts."""
 
+import io
+import threading
 from pathlib import Path
 
-from pypdf import PdfReader
+import pypdfium2 as pdfium
+from pypdf import PdfReader, PdfWriter
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -84,6 +87,66 @@ def extract_page_range(source: Source, page_start: int, page_end: int) -> str:
     return "\n".join(lines[page_start - 1 : page_end]).rstrip()
 
 
+# Rasterization scale for page images: 2.0 x 72 dpi = 144 dpi, sharp enough
+# for textbook figures and equations without producing multi-MB pages.
+PAGE_IMAGE_SCALE = 2.0
+
+# PDFium is not thread-safe: concurrent calls from worker threads corrupt
+# its global state ("Data format error" on document open). All pdfium work
+# must be serialized through this lock.
+_PDFIUM_LOCK = threading.Lock()
+
+
+def render_page_png(source: Source, page_number: int) -> bytes:
+    """Rasterize one 1-indexed page of a PDF source to PNG bytes.
+
+    Raises:
+        ValidationError: If the source is not a PDF or the page is out of
+            range.
+    """
+    if source.kind is not SourceKind.pdf:
+        raise ValidationError("Page images are only available for PDF sources")
+    file_path = resolve_source_path(source.path)
+    with _PDFIUM_LOCK:
+        pdf = pdfium.PdfDocument(file_path)
+        try:
+            total = len(pdf)
+            if not 1 <= page_number <= total:
+                raise ValidationError(
+                    f"page {page_number} out of range (document has {total} pages)"
+                )
+            bitmap = pdf[page_number - 1].render(scale=PAGE_IMAGE_SCALE)
+            image = bitmap.to_pil()
+        finally:
+            pdf.close()
+    buffer = io.BytesIO()
+    image.save(buffer, format="PNG")
+    return buffer.getvalue()
+
+
+def slice_pdf_pages(source: Source, page_start: int, page_end: int) -> bytes:
+    """Extract an inclusive, 1-indexed page range of a PDF source as PDF bytes.
+
+    Raises:
+        ValidationError: If the source is not a PDF or the range exceeds the
+            document.
+    """
+    if source.kind is not SourceKind.pdf:
+        raise ValidationError("PDF slices are only available for PDF sources")
+    file_path = resolve_source_path(source.path)
+    reader = PdfReader(file_path)
+    if page_end > len(reader.pages):
+        raise ValidationError(
+            f"page_end {page_end} exceeds document length ({len(reader.pages)} pages)"
+        )
+    writer = PdfWriter()
+    for page in reader.pages[page_start - 1 : page_end]:
+        writer.add_page(page)
+    buffer = io.BytesIO()
+    writer.write(buffer)
+    return buffer.getvalue()
+
+
 class SourceService:
     """Handles source registration and excerpt creation/lookup."""
 
@@ -114,6 +177,7 @@ class SourceService:
             year=payload.year,
             kind=payload.kind,
             path=payload.path,
+            page_offset=payload.page_offset,
         )
         self._db.add(source)
         try:
@@ -176,6 +240,21 @@ class SourceService:
                 "This span of the source is already embedded in the module"
             ) from exc
         await self._db.refresh(excerpt, attribute_names=["source"])
+        return excerpt
+
+    async def get_excerpt(self, excerpt_id: str) -> SourceExcerpt:
+        """Retrieve an excerpt with its source eagerly loaded.
+
+        Raises:
+            NotFoundError: If no excerpt with that ID exists.
+        """
+        excerpt = await self._db.scalar(
+            select(SourceExcerpt)
+            .where(SourceExcerpt.id == excerpt_id)
+            .options(selectinload(SourceExcerpt.source))
+        )
+        if excerpt is None:
+            raise NotFoundError("SourceExcerpt", excerpt_id)
         return excerpt
 
     async def list_excerpts_for_course(self, course_id: str) -> list[SourceExcerpt]:
