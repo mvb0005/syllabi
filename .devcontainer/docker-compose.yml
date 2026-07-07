@@ -36,6 +36,64 @@ services:
       - postgres-data:/var/lib/postgresql/data
     ports:
       - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U lms_user -d lms_db"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    networks:
+      - lms-network
+
+  # --------------------------------------------------
+  # 2b. Backend API (FastAPI; runs alembic migrations on start)
+  # --------------------------------------------------
+  backend:
+    build:
+      context: ..
+      dockerfile: backend/Dockerfile
+    container_name: lms-backend
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql+asyncpg://lms_user:lms_password@db:5432/lms_db
+      SOURCES_DIR: /workspace/sources
+    volumes:
+      - ../:/workspace:cached
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - lms-network
+
+  # --------------------------------------------------
+  # 2b'. C++ -> WASM compile service (internal only; backend proxies to it)
+  # --------------------------------------------------
+  compiler:
+    build:
+      context: ../compiler
+    container_name: lms-compiler
+    restart: unless-stopped
+    networks:
+      - lms-network
+
+  # --------------------------------------------------
+  # 2c. Frontend (Vite dev server; /api proxied to backend)
+  # --------------------------------------------------
+  frontend:
+    build:
+      context: ../frontend
+    container_name: lms-frontend
+    restart: unless-stopped
+    environment:
+      VITE_API_PROXY_TARGET: http://backend:8000
+    volumes:
+      - ../frontend:/app:cached
+      - /app/node_modules
+    ports:
+      - "5173:5173"
+    depends_on:
+      - backend
     networks:
       - lms-network
 

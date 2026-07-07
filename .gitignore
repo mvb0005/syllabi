@@ -24,3 +24,7 @@ frontend/dist/
 # OS
 .DS_Store
 Thumbs.db
+
+# Third-party source material (copyrighted; never commit)
+sources/*
+!sources/README.md
