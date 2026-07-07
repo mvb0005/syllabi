@@ -3,6 +3,7 @@ import { AppShell } from '@/components/layout/AppShell'
 import { CoursePage } from '@/pages/CoursePage'
 import { CoursesPage } from '@/pages/CoursesPage'
 import { DashboardPage } from '@/pages/DashboardPage'
+import { ModulePage } from '@/pages/ModulePage'
 
 function App() {
   return (
@@ -12,6 +13,10 @@ function App() {
           <Route path="/" element={<DashboardPage />} />
           <Route path="/courses" element={<CoursesPage />} />
           <Route path="/courses/:courseId" element={<CoursePage />} />
+          <Route
+            path="/courses/:courseId/modules/:moduleId"
+            element={<ModulePage />}
+          />
         </Routes>
       </AppShell>
     </BrowserRouter>

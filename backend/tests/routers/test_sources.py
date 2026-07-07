@@ -203,3 +203,134 @@ async def test_list_course_excerpts_course_not_found(client: AsyncClient) -> Non
     """GET /courses/{id}/excerpts returns 404 for an unknown course."""
     resp = await client.get("/courses/does-not-exist/excerpts")
     assert resp.status_code == 404
+
+
+async def _make_pdf_source(client: AsyncClient) -> str:
+    """Register the blank.pdf fixture as a source; return its ID."""
+    payload = _text_source_payload() | {
+        "bibkey": f"pdf{uuid.uuid4().hex[:8]}",
+        "kind": "pdf",
+        "path": "blank.pdf",
+    }
+    resp = await client.post("/sources/", json=payload)
+    assert resp.status_code == 201
+    return str(resp.json()["id"])
+
+
+@pytest.mark.asyncio
+async def test_get_source_page_image(client: AsyncClient) -> None:
+    """GET /sources/{id}/pages/{n} renders the page as a cacheable PNG."""
+    await _login_instructor(client)
+    source_id = await _make_pdf_source(client)
+
+    resp = await client.get(f"/sources/{source_id}/pages/1")
+    assert resp.status_code == 200
+    assert resp.headers["content-type"] == "image/png"
+    assert "immutable" in resp.headers["cache-control"]
+    assert resp.content.startswith(b"\x89PNG\r\n")
+
+
+@pytest.mark.asyncio
+async def test_get_source_page_image_out_of_range(client: AsyncClient) -> None:
+    """GET /sources/{id}/pages/{n} rejects pages beyond the document."""
+    await _login_instructor(client)
+    source_id = await _make_pdf_source(client)
+
+    for bad_page in (0, 6):
+        resp = await client.get(f"/sources/{source_id}/pages/{bad_page}")
+        assert resp.status_code == 422
+
+
+@pytest.mark.asyncio
+async def test_get_source_page_image_text_source(client: AsyncClient) -> None:
+    """GET /sources/{id}/pages/{n} rejects non-PDF sources."""
+    await _login_instructor(client)
+    resp = await client.post("/sources/", json=_text_source_payload())
+    source_id = resp.json()["id"]
+
+    resp = await client.get(f"/sources/{source_id}/pages/1")
+    assert resp.status_code == 422
+
+
+@pytest.mark.asyncio
+async def test_get_source_page_image_source_not_found(client: AsyncClient) -> None:
+    """GET /sources/{id}/pages/{n} returns 404 for an unknown source."""
+    resp = await client.get("/sources/does-not-exist/pages/1")
+    assert resp.status_code == 404
+
+
+@pytest.mark.asyncio
+async def test_get_source_page_image_corrupt_pdf(client: AsyncClient, sources_dir: Path) -> None:
+    """A PDF that breaks after registration yields a 422, not a 500."""
+    await _login_instructor(client)
+    source_id = await _make_pdf_source(client)
+    (sources_dir / "blank.pdf").write_bytes(b"%PDF-1.4 not actually a pdf")
+
+    resp = await client.get(f"/sources/{source_id}/pages/1")
+    assert resp.status_code == 422
+
+
+@pytest.mark.asyncio
+async def test_get_source_page_images_concurrent(client: AsyncClient) -> None:
+    """Parallel page renders must all succeed (PDFium is not thread-safe)."""
+    import asyncio
+
+    await _login_instructor(client)
+    source_id = await _make_pdf_source(client)
+
+    responses = await asyncio.gather(
+        *(client.get(f"/sources/{source_id}/pages/{page}") for page in (1, 2, 3, 4, 5))
+    )
+    assert all(resp.status_code == 200 for resp in responses)
+    assert all(resp.content.startswith(b"\x89PNG\r\n") for resp in responses)
+
+
+@pytest.mark.asyncio
+async def test_get_excerpt_pdf(client: AsyncClient) -> None:
+    """GET /sources/excerpts/{id}/pdf serves the embedded range as a PDF."""
+    await _login_instructor(client)
+    _course_id, module_id = await _make_module(client)
+    source_id = await _make_pdf_source(client)
+
+    create = await client.post(
+        f"/sources/{source_id}/excerpts",
+        json={
+            "module_id": module_id,
+            "page_start": 2,
+            "page_end": 4,
+            "topic": "Slice",
+        },
+    )
+    assert create.status_code == 201
+    excerpt_id = create.json()["id"]
+
+    resp = await client.get(f"/sources/excerpts/{excerpt_id}/pdf")
+    assert resp.status_code == 200
+    assert resp.headers["content-type"] == "application/pdf"
+    assert "immutable" in resp.headers["cache-control"]
+    assert resp.content.startswith(b"%PDF-")
+
+    import io
+
+    from pypdf import PdfReader
+
+    assert len(PdfReader(io.BytesIO(resp.content)).pages) == 3
+
+
+@pytest.mark.asyncio
+async def test_get_excerpt_pdf_not_found(client: AsyncClient) -> None:
+    """GET /sources/excerpts/{id}/pdf returns 404 for an unknown excerpt."""
+    resp = await client.get("/sources/excerpts/does-not-exist/pdf")
+    assert resp.status_code == 404
+
+
+@pytest.mark.asyncio
+async def test_create_source_page_offset_roundtrip(client: AsyncClient) -> None:
+    """POST /sources/ persists page_offset; it defaults to 0 when omitted."""
+    await _login_instructor(client)
+    resp = await client.post("/sources/", json=_text_source_payload() | {"page_offset": 19})
+    assert resp.status_code == 201
+    assert resp.json()["page_offset"] == 19
+
+    resp = await client.post("/sources/", json=_text_source_payload())
+    assert resp.json()["page_offset"] == 0

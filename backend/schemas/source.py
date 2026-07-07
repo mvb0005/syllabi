@@ -20,6 +20,9 @@ class SourceCreate(BaseModel):
     year: int | None = None
     kind: SourceKind = SourceKind.pdf
     path: str = Field(min_length=1, max_length=500)
+    # Printed page = PDF page - page_offset (books number past their front
+    # matter); excerpt ranges stay in PDF pages, citations render printed.
+    page_offset: int = Field(default=0, ge=0)
 
 
 class SourcePublic(BaseModel):
@@ -36,6 +39,7 @@ class SourcePublic(BaseModel):
     year: int | None
     kind: SourceKind
     path: str
+    page_offset: int
 
 
 class SourceExcerptCreate(BaseModel):

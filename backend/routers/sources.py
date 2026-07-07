@@ -1,6 +1,8 @@
 """Sources router — third-party reference works and cited excerpts."""
 
-from fastapi import APIRouter, Depends, HTTPException, status
+import asyncio
+
+from fastapi import APIRouter, Depends, HTTPException, Response, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.database import get_db
@@ -13,7 +15,7 @@ from backend.schemas.source import (
     SourceExcerptPublic,
     SourcePublic,
 )
-from backend.services.source_service import SourceService
+from backend.services.source_service import SourceService, render_page_png, slice_pdf_pages
 
 router = APIRouter(prefix="/sources", tags=["sources"])
 
@@ -56,6 +58,67 @@ async def get_source(
     except NotFoundError as exc:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
     return SourcePublic.model_validate(source)
+
+
+@router.get("/{source_id}/pages/{page_number}", response_class=Response)
+async def get_source_page_image(
+    source_id: str,
+    page_number: int,
+    db: AsyncSession = Depends(get_db),
+) -> Response:
+    """Render one page of a PDF source as a PNG image.
+
+    Serves the figures, equations, and layout that plain-text extraction
+    loses; excerpt readings embed these images page by page.
+    """
+    try:
+        source = await SourceService(db).get_source(source_id)
+        # Rasterization is CPU-bound; keep it off the event loop.
+        png = await asyncio.to_thread(render_page_png, source, page_number)
+    except NotFoundError as exc:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
+    except ValidationError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=exc.detail
+        ) from exc
+    return Response(
+        content=png,
+        media_type="image/png",
+        # Pages of a registered source never change; let browsers cache hard.
+        headers={"Cache-Control": "public, max-age=86400, immutable"},
+    )
+
+
+@router.get("/excerpts/{excerpt_id}/pdf", response_class=Response)
+async def get_excerpt_pdf(
+    excerpt_id: str,
+    db: AsyncSession = Depends(get_db),
+) -> Response:
+    """Serve an excerpt's embedded page range as a standalone PDF.
+
+    Only spans already embedded in a module are servable, keeping exposure
+    scoped to cited excerpts; the frontend renders this slice with PDF.js.
+    """
+    try:
+        excerpt = await SourceService(db).get_excerpt(excerpt_id)
+        # pypdf slicing is CPU-bound (pure Python, thread-safe).
+        pdf_bytes = await asyncio.to_thread(
+            slice_pdf_pages, excerpt.source, excerpt.page_start, excerpt.page_end
+        )
+    except NotFoundError as exc:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
+    except ValidationError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=exc.detail
+        ) from exc
+    return Response(
+        content=pdf_bytes,
+        media_type="application/pdf",
+        headers={
+            "Cache-Control": "public, max-age=86400, immutable",
+            "Content-Disposition": "inline",
+        },
+    )
 
 
 @router.post(

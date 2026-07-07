@@ -14,3 +14,6 @@ ruff>=0.9
 mypy>=1.14
 types-python-jose>=3.3.4
 openai>=1.65
+pypdf>=5.0
+pypdfium2>=4.30
+pillow>=10.0

@@ -15,10 +15,19 @@ class AssignmentBase(BaseModel):
     grading_type: GradingType = GradingType.deterministic
     max_score: int = 100
     due_at: datetime | None = None
+    # Non-empty starter_code marks an in-browser code milestone.
+    starter_code: str = ""
 
 
 class AssignmentCreate(AssignmentBase):
-    """Request body for creating an assignment."""
+    """Request body for creating an assignment (instructor only).
+
+    ``test_code`` is the fixed test harness appended to the student's
+    source server-side at compile time. It is write-only: AssignmentPublic
+    deliberately omits it so tests cannot be read or edited by students.
+    """
+
+    test_code: str = ""
 
 
 class AssignmentUpdate(BaseModel):
@@ -29,6 +38,8 @@ class AssignmentUpdate(BaseModel):
     grading_type: GradingType | None = None
     max_score: int | None = None
     due_at: datetime | None = None
+    starter_code: str | None = None
+    test_code: str | None = None
 
 
 class AssignmentPublic(AssignmentBase):

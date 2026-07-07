@@ -8,7 +8,7 @@ from backend.models.assignment import Assignment
 from backend.models.course import Course, Module
 from backend.models.user import User
 from backend.schemas.assignment import AssignmentCreate, AssignmentUpdate
-from backend.schemas.course import CourseCreate, CourseUpdate, ModuleCreate
+from backend.schemas.course import CourseCreate, CourseUpdate, ModuleCreate, ModuleUpdate
 
 
 class CourseService:
@@ -90,6 +90,22 @@ class CourseService:
         await self._db.refresh(module)
         return module
 
+    async def update_module(self, course_id: str, module_id: str, payload: ModuleUpdate) -> Module:
+        """Apply partial updates to a module of a course.
+
+        Raises:
+            NotFoundError: If the module does not exist or belongs to a
+                different course.
+        """
+        module = await self._db.get(Module, module_id)
+        if module is None or module.course_id != course_id:
+            raise NotFoundError("Module", module_id)
+        for field, value in payload.model_dump(exclude_none=True).items():
+            setattr(module, field, value)
+        await self._db.commit()
+        await self._db.refresh(module)
+        return module
+
     async def list_modules(self, course_id: str) -> list[Module]:
         """Return a course's modules ordered by ``order_index``.
 
@@ -151,6 +167,8 @@ class CourseService:
             grading_type=payload.grading_type,
             max_score=payload.max_score,
             due_at=payload.due_at,
+            starter_code=payload.starter_code,
+            test_code=payload.test_code,
         )
         self._db.add(assignment)
         await self._db.commit()

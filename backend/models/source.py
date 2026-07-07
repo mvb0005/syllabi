@@ -39,6 +39,9 @@ class Source(Base, TimestampMixin):
     )
     # Path relative to the sources/ directory; never absolute.
     path: Mapped[str] = mapped_column(String(500), nullable=False)
+    # Printed page number = PDF page number - page_offset (front matter
+    # shifts a book's own numbering); citations render printed numbers.
+    page_offset: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
 
     excerpts: Mapped[list["SourceExcerpt"]] = relationship(
         "SourceExcerpt", back_populates="source", cascade="all, delete-orphan"
