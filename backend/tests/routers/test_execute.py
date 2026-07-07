@@ -96,9 +96,7 @@ async def _make_milestone(client: AsyncClient) -> str:
         await client.post("/auth/login", json={"email": email, "password": "pw"})
     ).status_code == 200
     course = await client.post("/courses/", json={"title": "C"})
-    module = await client.post(
-        f"/courses/{course.json()['id']}/modules", json={"title": "M"}
-    )
+    module = await client.post(f"/courses/{course.json()['id']}/modules", json={"title": "M"})
     assignment = await client.post(
         "/assignments/",
         params={"module_id": module.json()["id"]},

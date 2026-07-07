@@ -5,6 +5,11 @@ name: lms-mothership-v3
 networks:
   lms-network:
     name: lms-network
+  # Backend <-> compiler only. `internal` means no host ports and no
+  # outbound internet from the compiler container.
+  compile-network:
+    name: lms-compile-network
+    internal: true
 
 services:
   # --------------------------------------------------
@@ -65,6 +70,7 @@ services:
         condition: service_healthy
     networks:
       - lms-network
+      - compile-network
 
   # --------------------------------------------------
   # 2b'. C++ -> WASM compile service (internal only; backend proxies to it)
@@ -74,8 +80,19 @@ services:
       context: ../compiler
     container_name: lms-compiler
     restart: unless-stopped
+    # Handles untrusted student source (compile only — nothing is executed
+    # here), so it runs with no internet, no capabilities, no privilege
+    # escalation, and bounded memory/processes/CPU. The rootfs stays
+    # writable because emcc needs its cache and temp build dirs.
     networks:
-      - lms-network
+      - compile-network
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    mem_limit: 2g
+    pids_limit: 256
+    cpus: 2
 
   # --------------------------------------------------
   # 2c. Frontend (Vite dev server; /api proxied to backend)

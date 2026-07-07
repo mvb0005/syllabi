@@ -1,8 +1,10 @@
+# syntax=docker/dockerfile:1
 # C++ -> WASM compile service for in-browser milestones.
 # emsdk ships emcc + python3; Eigen is added for the Phase V exercise.
 FROM emscripten/emsdk:3.1.61
 
-ADD https://gitlab.com/libeigen/eigen/-/archive/3.4.0/eigen-3.4.0.tar.gz /tmp/eigen.tar.gz
+ADD --checksum=sha256:8586084f71f9bde545ee7fa6d00288b264a2b7ac3607b974e54d13e7162c1c72 \
+    https://gitlab.com/libeigen/eigen/-/archive/3.4.0/eigen-3.4.0.tar.gz /tmp/eigen.tar.gz
 RUN mkdir -p /opt/eigen && \
     tar -xzf /tmp/eigen.tar.gz -C /opt/eigen --strip-components=1 && \
     rm /tmp/eigen.tar.gz

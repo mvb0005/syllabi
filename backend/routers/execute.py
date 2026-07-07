@@ -57,9 +57,7 @@ async def compile_cpp(
 
     try:
         async with httpx.AsyncClient(timeout=120) as client:
-            resp = await client.post(
-                f"{settings.COMPILER_URL}/compile", json={"source": source}
-            )
+            resp = await client.post(f"{settings.COMPILER_URL}/compile", json={"source": source})
     except httpx.HTTPError as exc:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,

@@ -2,8 +2,10 @@ import { cpp } from '@codemirror/lang-cpp'
 import CodeMirror from '@uiw/react-codemirror'
 import { useEffect, useRef, useState } from 'react'
 import { compileCpp } from '@/api/client'
-import { UserCodeScope, VIZ_HARNESS, detectVizKind } from '@/components/MilestoneScopes'
-import { TestGraphs, parseTestViz, type TestViz } from '@/components/TestGraphs'
+import { UserCodeScope } from '@/components/MilestoneScopes'
+import { TestGraphs } from '@/components/TestGraphs'
+import { parseTestViz, type TestViz } from '@/components/testviz'
+import { VIZ_HARNESS, detectVizKind } from '@/components/vizHarness'
 
 const RUN_TIMEOUT_MS = 15_000
 

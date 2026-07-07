@@ -1,60 +1,13 @@
 import { useEffect, useRef, useState } from 'react'
+import type { VizKind } from './vizHarness'
 import { setupCanvas, useChartContainer } from './visuals/chart'
 
 /**
- * Scopes drawn by the student's own compiled code. A small extern "C"
- * harness is appended to the source before compilation (EMSCRIPTEN_KEEPALIVE
- * exports it automatically); after a run, the same WASM artifact that ran
- * the self-tests is re-instantiated (without running main) and the scope
- * calls the student's functions through the harness.
+ * Scopes drawn by the student's own compiled code. The harness appended by
+ * vizHarness.ts exposes the student's functions; after a run, the same WASM
+ * artifact that ran the self-tests is re-instantiated (without running main)
+ * and the scope calls the student's functions through it.
  */
-
-export type VizKind = 'spectrum' | 'pattern'
-
-/** Which scope an exercise gets, keyed on its starter code's contract. */
-export function detectVizKind(starterCode: string): VizKind | null {
-  if (starterCode.includes('std::vector<cf> dft(')) return 'spectrum'
-  if (starterCode.includes('steering_vector(')) return 'pattern'
-  return null
-}
-
-export const VIZ_HARNESS: Record<VizKind, string> = {
-  spectrum: `
-
-// ---- platform harness: powers the spectrum scope (not part of the exercise) ----
-#include <emscripten.h>
-extern "C" {
-EMSCRIPTEN_KEEPALIVE float* viz_alloc(int n_floats) {
-    static std::vector<float> buf; buf.resize(n_floats); return buf.data();
-}
-EMSCRIPTEN_KEEPALIVE float* viz_dft(float* iq, int n) {
-    std::vector<cf> x(n);
-    for (int i = 0; i < n; ++i) x[i] = cf{iq[2*i], iq[2*i+1]};
-    auto X = dft(x);
-    static std::vector<float> out; out.resize(2*n);
-    for (int i = 0; i < n; ++i) { out[2*i] = X[i].real(); out[2*i+1] = X[i].imag(); }
-    return out.data();
-}
-}
-`,
-  pattern: `
-
-// ---- platform harness: powers the beam pattern scope (not part of the exercise) ----
-#include <emscripten.h>
-extern "C" {
-EMSCRIPTEN_KEEPALIVE float* viz_pattern(int n_elem, float steer_deg, int points) {
-    static std::vector<float> out; out.resize(points);
-    const float d2r = std::numbers::pi_v<float> / 180.f;
-    VectorXcf w = steering_vector(n_elem, steer_deg * d2r);
-    for (int i = 0; i < points; ++i) {
-        float th = (-90.f + 180.f * i / (points - 1)) * d2r;
-        out[i] = std::abs(beamform(w, steering_vector(n_elem, th)));
-    }
-    return out.data();
-}
-}
-`,
-}
 
 interface WasmInstance {
   HEAPF32: Float32Array
@@ -77,33 +30,37 @@ async function loadInstance(js: string): Promise<WasmInstance> {
 }
 
 export function UserCodeScope({ kind, js }: { kind: VizKind; js: string }) {
-  const [instance, setInstance] = useState<WasmInstance | null>(null)
-  const [failed, setFailed] = useState(false)
+  // The instance is tagged with the source it was built from; a result for
+  // stale js is simply not rendered, so no state reset is needed when js
+  // changes (and no setState runs synchronously inside the effect).
+  const [loaded, setLoaded] = useState<{
+    js: string
+    instance: WasmInstance | null
+  } | null>(null)
 
   useEffect(() => {
     let cancelled = false
-    setInstance(null)
-    setFailed(false)
     loadInstance(js)
-      .then((inst) => !cancelled && setInstance(inst))
-      .catch(() => !cancelled && setFailed(true))
+      .then((instance) => !cancelled && setLoaded({ js, instance }))
+      .catch(() => !cancelled && setLoaded({ js, instance: null }))
     return () => {
       cancelled = true
     }
   }, [js])
 
-  if (failed)
+  const current = loaded?.js === js ? loaded : null
+  if (!current)
+    return <p className="mt-2 text-sm text-muted-foreground">loading scope…</p>
+  if (!current.instance)
     return (
       <p className="mt-2 text-sm text-muted-foreground">
         ⚠ could not load your compiled module for the scope
       </p>
     )
-  if (!instance)
-    return <p className="mt-2 text-sm text-muted-foreground">loading scope…</p>
   return kind === 'spectrum' ? (
-    <SpectrumScope instance={instance} />
+    <SpectrumScope instance={current.instance} />
   ) : (
-    <ArrayPatternScope instance={instance} />
+    <ArrayPatternScope instance={current.instance} />
   )
 }
 

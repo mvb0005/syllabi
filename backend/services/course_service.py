@@ -90,9 +90,7 @@ class CourseService:
         await self._db.refresh(module)
         return module
 
-    async def update_module(
-        self, course_id: str, module_id: str, payload: ModuleUpdate
-    ) -> Module:
+    async def update_module(self, course_id: str, module_id: str, payload: ModuleUpdate) -> Module:
         """Apply partial updates to a module of a course.
 
         Raises:

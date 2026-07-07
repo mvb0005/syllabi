@@ -9,7 +9,7 @@ import { CodeMilestone } from '@/components/CodeMilestone'
 import { Markdown } from '@/components/Markdown'
 import { PdfExcerpt } from '@/components/PdfExcerpt'
 
-export const gradingLabel: Record<GradingType, string> = {
+const gradingLabel: Record<GradingType, string> = {
   deterministic: 'graded deterministically by test suite',
   llm_rubric: 'graded against a rubric',
   hybrid: 'graded by test suite and rubric',

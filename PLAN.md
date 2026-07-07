@@ -81,9 +81,12 @@ submitted implementation, not a canned animation.
   is deliberately C++).
 
 **Pipeline:**
-1. `POST /submissions/` (existing) → compile service: Emscripten in a locked
-   container (`--network=none`, 512 MB, 1 CPU, 30 s, read-only rootfs, tmpfs
-   build dir); surface compiler stderr to the student on failure.
+1. `POST /submissions/` (existing) → compile service: Emscripten in a
+   hardened container — as implemented: internal-only Docker network (no
+   host ports, no outbound internet), `cap_drop: ALL`,
+   `no-new-privileges`, 2 GB / 2 CPU / 256-pid limits, 90 s compile
+   timeout. Rootfs stays writable (emcc cache + temp build dirs);
+   compiler stderr is surfaced to the student on failure.
 2. Store `.wasm` artifact keyed by submission; serve like excerpt PDFs
    (immutable cache headers).
 3. Frontend `InteractiveVisual` component + per-exercise **visual manifest**

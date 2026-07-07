@@ -12,8 +12,8 @@ export const SERIES = {
 
 export type SeriesColors = (typeof SERIES)['light']
 
-/** Is the surrounding theme dark? Judged from the inherited text color. */
-function isDarkInk(el: HTMLElement): boolean {
+/** Is the surrounding theme dark? Light ink (high luminance) means yes. */
+function isDarkTheme(el: HTMLElement): boolean {
   const m = getComputedStyle(el).color.match(/\d+/g)
   if (!m) return false
   const [r, g, b] = m.map(Number)
@@ -36,9 +36,9 @@ export function useChartContainer() {
       setWidth(entry.contentRect.width)
     })
     observer.observe(el)
-    setDark(isDarkInk(el))
+    setDark(isDarkTheme(el))
     const scheme = window.matchMedia('(prefers-color-scheme: dark)')
-    const onScheme = () => setDark(isDarkInk(el))
+    const onScheme = () => setDark(isDarkTheme(el))
     scheme.addEventListener('change', onScheme)
     return () => {
       observer.disconnect()

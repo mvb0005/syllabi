@@ -260,6 +260,17 @@ async def test_get_source_page_image_source_not_found(client: AsyncClient) -> No
 
 
 @pytest.mark.asyncio
+async def test_get_source_page_image_corrupt_pdf(client: AsyncClient, sources_dir: Path) -> None:
+    """A PDF that breaks after registration yields a 422, not a 500."""
+    await _login_instructor(client)
+    source_id = await _make_pdf_source(client)
+    (sources_dir / "blank.pdf").write_bytes(b"%PDF-1.4 not actually a pdf")
+
+    resp = await client.get(f"/sources/{source_id}/pages/1")
+    assert resp.status_code == 422
+
+
+@pytest.mark.asyncio
 async def test_get_source_page_images_concurrent(client: AsyncClient) -> None:
     """Parallel page renders must all succeed (PDFium is not thread-safe)."""
     import asyncio

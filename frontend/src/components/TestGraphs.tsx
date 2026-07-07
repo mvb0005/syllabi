@@ -1,41 +1,12 @@
 import { useEffect, useRef } from 'react'
+import type { TestViz } from './testviz'
 import { setupCanvas, useChartContainer } from './visuals/chart'
 
 /**
- * Test-case graphs. The fixed harness prints one "TESTVIZ {json}" line per
- * test case with the reference (expected) and student (actual) series; each
- * renders as a small overlay chart: your output as bars, the reference as a
- * dashed line through the same points, plus an explicit pass/fail verdict.
+ * Test-case graphs. Each parsed TESTVIZ record renders as a small overlay
+ * chart: your output as bars, the reference as a dashed line through the
+ * same points, plus an explicit pass/fail verdict.
  */
-
-export interface TestViz {
-  name: string
-  pass: boolean
-  xlabel: string
-  expected: number[]
-  actual: number[]
-}
-
-/** Split worker output into test graphs and the remaining printable lines. */
-export function parseTestViz(lines: string[]): {
-  graphs: TestViz[]
-  rest: string[]
-} {
-  const graphs: TestViz[] = []
-  const rest: string[] = []
-  for (const line of lines) {
-    if (line.startsWith('TESTVIZ ')) {
-      try {
-        graphs.push(JSON.parse(line.slice('TESTVIZ '.length)) as TestViz)
-        continue
-      } catch {
-        // malformed — fall through so the raw line stays visible
-      }
-    }
-    rest.push(line)
-  }
-  return { graphs, rest }
-}
 
 function TestGraph({ viz }: { viz: TestViz }) {
   const { ref, width, colors } = useChartContainer()

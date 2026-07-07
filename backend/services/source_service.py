@@ -6,6 +6,7 @@ from pathlib import Path
 
 import pypdfium2 as pdfium
 from pypdf import PdfReader, PdfWriter
+from pypdf.errors import PyPdfError
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -108,15 +109,21 @@ def render_page_png(source: Source, page_number: int) -> bytes:
         raise ValidationError("Page images are only available for PDF sources")
     file_path = resolve_source_path(source.path)
     with _PDFIUM_LOCK:
-        pdf = pdfium.PdfDocument(file_path)
+        try:
+            pdf = pdfium.PdfDocument(file_path)
+        except pdfium.PdfiumError as exc:
+            raise ValidationError(f"source PDF could not be opened: {exc}") from exc
         try:
             total = len(pdf)
             if not 1 <= page_number <= total:
                 raise ValidationError(
                     f"page {page_number} out of range (document has {total} pages)"
                 )
-            bitmap = pdf[page_number - 1].render(scale=PAGE_IMAGE_SCALE)
-            image = bitmap.to_pil()
+            try:
+                bitmap = pdf[page_number - 1].render(scale=PAGE_IMAGE_SCALE)
+                image = bitmap.to_pil()
+            except pdfium.PdfiumError as exc:
+                raise ValidationError(f"page {page_number} could not be rendered: {exc}") from exc
         finally:
             pdf.close()
     buffer = io.BytesIO()
@@ -134,7 +141,10 @@ def slice_pdf_pages(source: Source, page_start: int, page_end: int) -> bytes:
     if source.kind is not SourceKind.pdf:
         raise ValidationError("PDF slices are only available for PDF sources")
     file_path = resolve_source_path(source.path)
-    reader = PdfReader(file_path)
+    try:
+        reader = PdfReader(file_path)
+    except PyPdfError as exc:
+        raise ValidationError(f"source PDF could not be opened: {exc}") from exc
     if page_end > len(reader.pages):
         raise ValidationError(
             f"page_end {page_end} exceeds document length ({len(reader.pages)} pages)"
