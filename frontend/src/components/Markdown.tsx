@@ -1,7 +1,9 @@
+import { isValidElement, type ReactNode } from 'react'
 import ReactMarkdown from 'react-markdown'
 import rehypeKatex from 'rehype-katex'
 import remarkGfm from 'remark-gfm'
 import remarkMath from 'remark-math'
+import { VISUALS } from '@/components/visuals'
 
 interface MarkdownProps {
   children: string
@@ -28,6 +30,31 @@ export function Markdown({ children, className }: MarkdownProps) {
       <ReactMarkdown
         remarkPlugins={[remarkGfm, remarkMath]}
         rehypePlugins={[rehypeKatex]}
+        components={{
+          // ```visual fenced blocks embed a registered interactive
+          // component. Intercept at the <pre> wrapper so the visual is not
+          // boxed in code-listing styling (mono font, gray band,
+          // non-wrapping white-space that clips its labels). Anything
+          // unrecognized falls through as a plain listing.
+          pre(props) {
+            const { children, ...rest } = props
+            const child = isValidElement<{ className?: string; children?: ReactNode }>(
+              children,
+            )
+              ? children
+              : null
+            if (child && /language-visual/.test(child.props.className ?? '')) {
+              try {
+                const spec = JSON.parse(String(child.props.children)) as { name: string }
+                const Visual = VISUALS[spec.name]
+                if (Visual) return <Visual />
+              } catch {
+                // fall through to plain rendering
+              }
+            }
+            return <pre {...rest}>{children}</pre>
+          },
+        }}
       >
         {promoteDisplayMath(children)}
       </ReactMarkdown>

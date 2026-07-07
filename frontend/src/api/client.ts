@@ -126,6 +126,7 @@ export interface AssignmentPublic {
   grading_type: GradingType
   max_score: number
   due_at: string | null
+  starter_code: string
 }
 
 export function listAssignments(moduleId: string): Promise<AssignmentPublic[]> {
@@ -155,6 +156,8 @@ export interface SourcePublic {
   year: number | null
   kind: SourceKind
   path: string
+  /** Printed page = PDF page − page_offset (books number past front matter). */
+  page_offset: number
 }
 
 export interface SourceExcerptPublic {
@@ -170,11 +173,43 @@ export interface SourceExcerptPublic {
   source: SourcePublic
 }
 
+/**
+ * URL of an excerpt's cited page range served as a standalone PDF,
+ * rendered in the reading block by PDF.js so figures and equations
+ * survive with selectable text.
+ */
+export function excerptPdfUrl(excerptId: string): string {
+  return `${BASE_URL}/sources/excerpts/${excerptId}/pdf`
+}
+
 /** All cited source excerpts across a course's modules, in module order. */
 export function listCourseExcerpts(
   courseId: string,
 ): Promise<SourceExcerptPublic[]> {
   return request<SourceExcerptPublic[]>(`/courses/${courseId}/excerpts`)
+}
+
+// ---- Code milestones -------------------------------------------------------
+
+export interface CppCompileResponse {
+  ok: boolean
+  js: string
+  diagnostics: string
+}
+
+/**
+ * Compile milestone C++ to a single-file WASM ES6 module (run client-side).
+ * With an assignmentId, the backend appends that assignment's fixed test
+ * harness server-side — the tests are never sent to the client.
+ */
+export function compileCpp(
+  source: string,
+  assignmentId?: string,
+): Promise<CppCompileResponse> {
+  return request<CppCompileResponse>('/execute/cpp', {
+    method: 'POST',
+    body: JSON.stringify({ source, assignment_id: assignmentId ?? null }),
+  })
 }
 
 // ---- Submissions -----------------------------------------------------------

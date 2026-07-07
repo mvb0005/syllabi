@@ -7,18 +7,11 @@ import {
   listModules,
   type AssignmentPublic,
   type CoursePublic,
-  type GradingType,
   type ModulePublic,
   type SourceExcerptPublic,
   type SourcePublic,
 } from '@/api/client'
-import { Markdown } from '@/components/Markdown'
-
-const gradingLabel: Record<GradingType, string> = {
-  deterministic: 'graded deterministically by test suite',
-  llm_rubric: 'graded against a rubric',
-  hybrid: 'graded by test suite and rubric',
-}
+import { Citation } from '@/components/CourseBlocks'
 
 interface ModuleSection {
   module: ModulePublic
@@ -26,62 +19,10 @@ interface ModuleSection {
   excerpts: SourceExcerptPublic[]
 }
 
-/** Bibliography entry: "J. G. Proakis and M. Salehi, *Digital Communications*, 5th ed. McGraw-Hill, 2008." */
-function Citation({ source }: { source: SourcePublic }) {
-  // Normalize a possibly period-terminated edition ("5th ed.") so the
-  // sentence break before the publisher never doubles up ("ed..").
-  const edition = source.edition.replace(/\.+$/, '')
-  const tail = [source.publisher, source.year !== null ? String(source.year) : null]
-    .filter(Boolean)
-    .join(', ')
-  return (
-    <>
-      {source.authors}, <em>{source.title}</em>
-      {edition && `, ${edition}`}.{tail && ` ${tail}.`}
-    </>
-  )
-}
-
-interface ExcerptBlockProps {
-  excerpt: SourceExcerptPublic
-  refNumber: number
-}
-
-/** A cited reading: topic label, optional context, the excerpt, attribution. */
-function ExcerptBlock({ excerpt, refNumber }: ExcerptBlockProps) {
-  const pages =
-    excerpt.page_start === excerpt.page_end
-      ? `p. ${excerpt.page_start}`
-      : `pp. ${excerpt.page_start}–${excerpt.page_end}`
-  return (
-    <div className="my-5">
-      <p className="mb-1">
-        <span className="text-sm font-bold uppercase tracking-widest">
-          Reading
-        </span>{' '}
-        <span className="italic">({excerpt.topic}).</span>{' '}
-        <a href="#references" className="text-sm">
-          [{refNumber}, {pages}]
-        </a>
-      </p>
-      {excerpt.context_md && <Markdown>{excerpt.context_md}</Markdown>}
-      <blockquote className="my-2 border-l border-foreground/60 pl-4 text-[0.94rem] leading-normal">
-        <p className="whitespace-pre-wrap text-justify">
-          {excerpt.content_text}
-        </p>
-      </blockquote>
-      <p className="text-right text-sm text-muted-foreground">
-        — {excerpt.source.authors}, <em>{excerpt.source.title}</em>, {pages}.
-      </p>
-    </div>
-  )
-}
-
 /**
- * A course rendered as a scholarly paper: centered title block, the course
- * description as the abstract, modules as numbered sections of typeset
- * markdown with cited source readings, assignments as exercise
- * environments, and a numbered References section for every cited source.
+ * A course's front matter: centered title block, the description as the
+ * abstract, a linked table of contents (one page per phase), and the
+ * course-wide References section.
  */
 export function CoursePage() {
   const { courseId } = useParams<{ courseId: string }>()
@@ -144,8 +85,15 @@ export function CoursePage() {
     )
   }
 
-  const refNumberOf = (sourceId: string) =>
-    references.findIndex((s) => s.id === sourceId) + 1
+  const describe = ({ assignments, excerpts }: ModuleSection) => {
+    const parts = [
+      assignments.length > 0 &&
+        `${assignments.length} exercise${assignments.length > 1 ? 's' : ''}`,
+      excerpts.length > 0 &&
+        `${excerpts.length} reading${excerpts.length > 1 ? 's' : ''}`,
+    ].filter(Boolean)
+    return parts.join(', ')
+  }
 
   return (
     <article className="sheet">
@@ -167,39 +115,26 @@ export function CoursePage() {
         </p>
       </section>
 
-      {sections.map(({ module, assignments, excerpts }, sectionIndex) => (
-        <section key={module.id} className="mb-8">
-          <h2 className="mb-2 mt-8 text-lg font-bold">
-            <span className="mr-4">{sectionIndex + 1}</span>
-            {module.title}
-          </h2>
-          <Markdown>{module.content_md}</Markdown>
-
-          {excerpts.map((excerpt) => (
-            <ExcerptBlock
-              key={excerpt.id}
-              excerpt={excerpt}
-              refNumber={refNumberOf(excerpt.source_id)}
-            />
+      <section className="mb-8">
+        <h2 className="mb-3 mt-8 text-lg font-bold">Contents</h2>
+        <ol className="ml-2 list-none space-y-2 p-0">
+          {sections.map((section, i) => (
+            <li key={section.module.id} className="flex gap-4">
+              <span className="shrink-0 tabular-nums">{i + 1}</span>
+              <span>
+                <Link to={`/courses/${courseId}/modules/${section.module.id}`}>
+                  {section.module.title}
+                </Link>
+                {describe(section) && (
+                  <span className="ml-3 text-sm text-muted-foreground">
+                    {describe(section)}
+                  </span>
+                )}
+              </span>
+            </li>
           ))}
-
-          {assignments.map((assignment, exerciseIndex) => (
-            <div key={assignment.id} className="mt-5">
-              <p className="mb-1">
-                <span className="font-bold">
-                  Exercise {sectionIndex + 1}.{exerciseIndex + 1}
-                </span>{' '}
-                <span className="italic">({assignment.title}).</span>{' '}
-                <span className="text-sm text-muted-foreground">
-                  {assignment.max_score} points,{' '}
-                  {gradingLabel[assignment.grading_type]}.
-                </span>
-              </p>
-              <Markdown>{assignment.description_md}</Markdown>
-            </div>
-          ))}
-        </section>
-      ))}
+        </ol>
+      </section>
 
       {references.length > 0 && (
         <section id="references" className="mb-8">
